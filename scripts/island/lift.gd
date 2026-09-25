@@ -63,9 +63,12 @@ func _draw() -> void:
 		draw_colored_polygon(Paint.ellipse(Vector2(bx - 7.0 * s, by - 10.0 * s), 6.0 * s, 9.0 * s, 16), Color(1, 1, 1, 0.45))
 		draw_colored_polygon(PackedVector2Array([Vector2(bx - 4, by + 28.0 * s + 4.0), Vector2(bx + 4, by + 28.0 * s + 4.0), Vector2(bx, by + 28.0 * s - 2.0)]), col.darkened(0.2))
 
-	draw_style_box(Paint.box(Color("#c98a58"), 6), Rect2(0, 0, width, 18))
+	draw_style_box(Paint.box(Color("#a86d45"), 6), Rect2(0, 0, width, 18))
+	draw_style_box(Paint.box(Color("#c98a58"), 5), Rect2(0, 0, width, 14))
+	draw_line(Vector2(4, 2), Vector2(width - 4.0, 2), Color(1, 1, 1, 0.3), 2.0)
 	for x in range(20, int(width), 28):
 		draw_line(Vector2(x, 2), Vector2(x, 16), Color("#a86d45"), 2.0)
+		draw_circle(Vector2(x - 6.0, 8), 1.4, Color("#ffd27a"), true, -1.0, true)
 
 	var panel := Rect2(width * 0.5 - 60.0, 24, 120, 26)
 	draw_style_box(Paint.box(Color(1, 1, 1, 0.9), 13, Color("#a86d45"), 2), panel)

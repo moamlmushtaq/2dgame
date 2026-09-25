@@ -49,7 +49,9 @@ func _draw() -> void:
 	for i in planks:
 		var x := i * 22.0
 		var sag := sin(x / length * PI) * 10.0
-		draw_style_box(Paint.box(Color("#c98a58"), 3), Rect2(x + 1.0, sag, 20, 12))
+		draw_style_box(Paint.box(Color("#a86d45"), 3), Rect2(x + 1.0, sag, 20, 12))
+		draw_style_box(Paint.box(Color("#c98a58"), 3), Rect2(x + 1.0, sag, 20, 9))
+		draw_line(Vector2(x + 3.0, sag + 2.0), Vector2(x + 18.0, sag + 2.0), Color(1, 1, 1, 0.3), 1.5)
 	var pts := PackedVector2Array()
 	for i in 21:
 		var x := reach * i / 20.0

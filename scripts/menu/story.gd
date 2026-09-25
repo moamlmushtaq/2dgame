@@ -93,7 +93,7 @@ func _draw() -> void:
 		draw_style_box(Paint.box(Color(1, 1, 1, 0.92), 24, Color(0, 0, 0, 0), 0, 10), r)
 		Paint.text(self, r.get_center(), text, 24, ink)
 	var blink := 0.5 + 0.5 * sin(_t * 4.0)
-	Paint.text(self, Vector2(640, 690), "اضغطوا القفز أو التفاعل للمتابعة", 16, Color(1, 1, 1, 0.5 + 0.4 * blink), false, 3, Color(ink, 0.4))
+	Paint.text(self, Vector2(640, 690), "اضغطوا القفز أو التفاعل للمتابعة", 16, Color(1, 1, 1, 0.6 + 0.4 * blink), false, 5, Color(ink, 0.75))
 	for i in _pages.size():
 		draw_circle(Vector2(640 + (i - (_pages.size() - 1) * 0.5) * 20.0, 540), 5.0, Color.WHITE if i == _page else Color(1, 1, 1, 0.4), true, -1.0, true)
 

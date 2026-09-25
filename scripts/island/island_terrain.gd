@@ -1,9 +1,28 @@
 class_name IslandTerrain
 extends Node2D
 ## Floating landmasses: rectangle colliders plus painted grassy tops, rocky roots,
-## blossom trees, flowers and a waterfall.
+## trees, bushes, grass tufts, flowers and a waterfall. Trees, bushes, tufts and flowers
+## are hand-drawn Glitch art (CC0, see assets/art/CREDITS.md).
 ##
 ## A landmass is a list of Vector3(x_start, x_end, top_y) segments laid left to right.
+
+## By tree kind: 0 = pink blossom, 1 = round green, 2 = lavender.
+const TREES := [
+	preload("res://assets/art/island/tree_blossom.png"), preload("res://assets/art/island/tree_green.png"),
+	preload("res://assets/art/island/tree_lavender.png"),
+]
+const FLOWERS := [
+	preload("res://assets/art/island/flower_1.png"), preload("res://assets/art/island/flower_2.png"),
+	preload("res://assets/art/island/flower_3.png"), preload("res://assets/art/island/flower_4.png"),
+	preload("res://assets/art/island/flower_5.png"), preload("res://assets/art/island/flower_6.png"),
+]
+const BUSHES := [
+	preload("res://assets/art/island/bush_1.png"), preload("res://assets/art/island/bush_2.png"),
+	preload("res://assets/art/island/bush_3.png"), preload("res://assets/art/island/grass_1.png"),
+	preload("res://assets/art/island/grass_2.png"),
+]
+## Height of a scale-1 tree in pixels.
+const TREE_HEIGHT := 150.0
 
 var grass := Color("#69c96b")
 var grass_light := Color("#9be58c")
@@ -13,6 +32,9 @@ var rock := Color("#7a4a3a")
 var _lands: Array[Dictionary] = []
 var _trees: Array[Vector4] = []
 var _flowers: Array[Vector3] = []
+## Vector4(x, ground_y, kind, scale); kinds 0-2 are bushes, 3-4 grass tufts.
+var _bushes: Array[Vector4] = []
+var _pebbles: Array[Vector3] = []
 var _waterfalls: Array[Vector2] = []
 var _t := 0.0
 
@@ -52,8 +74,17 @@ func add_land(segs: Array) -> void:
 	for seg: Vector3 in segs:
 		var x := seg.x + 20.0
 		while x < seg.y - 20.0:
-			_flowers.append(Vector3(x, seg.z, rng.randi_range(0, 4)))
-			x += rng.randf_range(40.0, 90.0)
+			_flowers.append(Vector3(x, seg.z, rng.randi_range(0, FLOWERS.size() - 1)))
+			x += rng.randf_range(50.0, 110.0)
+		x = seg.x + rng.randf_range(10.0, 60.0)
+		while x < seg.y - 30.0:
+			var kind := rng.randi_range(0, BUSHES.size() - 1)
+			_bushes.append(Vector4(x, seg.z, kind, rng.randf_range(0.45, 0.65) if kind < 3 else rng.randf_range(0.5, 0.8)))
+			x += rng.randf_range(140.0, 260.0)
+		x = seg.x + 14.0
+		while x < seg.y - 10.0:
+			_pebbles.append(Vector3(x, seg.z + rng.randf_range(26.0, 58.0), rng.randf_range(2.5, 5.5)))
+			x += rng.randf_range(18.0, 46.0)
 
 
 ## Invisible wall so nobody walks off the edge of the world.
@@ -91,13 +122,20 @@ func _draw() -> void:
 		_draw_land(land)
 	for tree in _trees:
 		_draw_tree(tree)
+	for b in _bushes:
+		_draw_bush(b)
 	for fl in _flowers:
 		_draw_flower(fl)
 
 
 func _draw_land(land: Dictionary) -> void:
 	var poly: PackedVector2Array = land["poly"]
-	draw_colored_polygon(poly, rock)
+	# Rocky underside: lit near the top, fading darker towards the tip.
+	var cols := PackedColorArray()
+	var base_y: float = land["base"]
+	for pt in poly:
+		cols.append(rock.lerp(rock.darkened(0.35), clampf((pt.y - base_y) / float(land["depth"]), 0.0, 1.0)))
+	draw_polygon(poly, cols)
 	# Rock strata on the underside, kept inside its tapering outline.
 	var base: float = land["base"]
 	var depth: float = land["depth"]
@@ -114,6 +152,10 @@ func _draw_land(land: Dictionary) -> void:
 		var w := seg.y - seg.x
 		draw_rect(Rect2(seg.x, seg.z, w, 70.0), dirt)
 		draw_rect(Rect2(seg.x, seg.z + 64.0, w, 6.0), dirt.darkened(0.15))
+	for pb in _pebbles:
+		if pb.x >= land["x0"] and pb.x <= land["x1"]:
+			draw_colored_polygon(Paint.ellipse(Vector2(pb.x, pb.y), pb.z * 1.4, pb.z, 10), dirt.darkened(0.22))
+			draw_circle(Vector2(pb.x - pb.z * 0.3, pb.y - pb.z * 0.3), pb.z * 0.35, dirt.lightened(0.15), true, -1.0, true)
 	for seg: Vector3 in land["segs"]:
 		var w := seg.y - seg.x
 		var x := seg.x + 6.0
@@ -127,37 +169,37 @@ func _draw_land(land: Dictionary) -> void:
 func _draw_tree(tree: Vector4) -> void:
 	var base := Vector2(tree.x, tree.y)
 	var s := tree.w
-	var sway := sin(_t * 1.3 + tree.x * 0.01) * 2.0 * s
-	var trunk := Color("#8a5a3c")
-	draw_colored_polygon(PackedVector2Array([base + Vector2(-7, 0) * s, base + Vector2(7, 0) * s,
-		base + Vector2(4 + sway, -70) * s, base + Vector2(-4 + sway, -70) * s]), trunk)
-	var lights := [Color("#ffc3d8"), Color("#7fdc8f"), Color("#d4c4ff")]
-	var darks := [Color("#f59bbd"), Color("#56b872"), Color("#a98cf0")]
-	var light: Color = lights[int(tree.z)]
-	var dark: Color = darks[int(tree.z)]
-	var puffs := [Vector3(0, -86, 34), Vector3(-30, -70, 26), Vector3(30, -70, 26), Vector3(-16, -108, 24), Vector3(18, -106, 24)]
-	for p: Vector3 in puffs:
-		draw_circle(base + (Vector2(p.x + sway, p.y + 6.0)) * s, p.z * s, dark, true, -1.0, true)
-	for p: Vector3 in puffs:
-		draw_circle(base + Vector2(p.x + sway, p.y) * s, p.z * s * 0.92, light, true, -1.0, true)
+	var tex: Texture2D = TREES[int(tree.z)]
+	var sc := TREE_HEIGHT * s / tex.get_height()
+	# Rock gently from the base in the breeze; the trunk foot sits just below the grass.
+	var sway := sin(_t * 1.3 + tree.x * 0.01) * 0.025
+	draw_set_transform(base + Vector2(0, 6), sway, Vector2(sc, sc))
+	draw_texture(tex, Vector2(-tex.get_width() * 0.5, -tex.get_height()))
+	draw_set_transform(Vector2.ZERO)
 	if tree.z == 0.0:
 		for i in 6:
 			var a := i * 1.7 + tree.x
 			var fall := fposmod(_t * 18.0 + i * 23.0, 120.0)
-			var petal := base + Vector2(cos(a) * 40.0 * s + sin(_t + i) * 8.0, -60.0 * s + fall)
+			var petal := base + Vector2(cos(a) * 45.0 * s + sin(_t + i) * 8.0, -70.0 * s + fall)
 			draw_circle(petal, 2.5, Color("#ffd6e4", 1.0 - fall / 120.0), true, -1.0, true)
 
 
+func _draw_bush(b: Vector4) -> void:
+	var tex: Texture2D = BUSHES[int(b.z)]
+	var sway := sin(_t * 2.0 + b.x * 0.05) * 0.03 if b.z >= 3.0 else 0.0
+	draw_set_transform(Vector2(b.x, b.y + 8.0), sway, Vector2(b.w, b.w))
+	draw_texture(tex, Vector2(-tex.get_width() * 0.5, -tex.get_height()))
+	draw_set_transform(Vector2.ZERO)
+
+
 func _draw_flower(fl: Vector3) -> void:
-	var colors := [Color("#ff8fa3"), Color("#ffd35c"), Color("#b69cff"), Color("#ffffff"), Color("#7fd6ff")]
-	var base := Vector2(fl.x, fl.y - 8.0)
-	var sway := sin(_t * 2.0 + fl.x) * 2.0
-	var head := base + Vector2(sway, -12)
-	draw_line(base, head, Color("#4fa85a"), 2.0, true)
-	var col: Color = colors[int(fl.z)]
-	for i in 5:
-		draw_circle(head + Vector2.from_angle(i * TAU / 5.0) * 4.0, 3.0, col, true, -1.0, true)
-	draw_circle(head, 2.2, Color("#ffb347"), true, -1.0, true)
+	var tex: Texture2D = FLOWERS[int(fl.z)]
+	var tall := tex.get_height() > 40
+	var sc := 0.55 if tall else 0.8
+	var sway := sin(_t * 2.0 + fl.x) * (0.08 if tall else 0.0)
+	draw_set_transform(Vector2(fl.x, fl.y + 4.0), sway, Vector2(sc, sc))
+	draw_texture(tex, Vector2(-tex.get_width() * 0.5, -tex.get_height()))
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_waterfall(top: Vector2) -> void:

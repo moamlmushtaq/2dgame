@@ -145,6 +145,8 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_VELOCITY
 			_squash = Vector2(0.72, 1.3)
 			Sound.play("jump", -8.0)
+			if is_on_floor():
+				_dust(4)
 
 	if _drop_time > 0.0:
 		_drop_time -= delta
@@ -152,9 +154,12 @@ func _physics_process(delta: float) -> void:
 			set_collision_mask_value(ONE_WAY_LAYER_NUMBER, true)
 
 	var was_airborne := not is_on_floor()
+	var fall_speed := velocity.y
 	move_and_slide()
 	if was_airborne and is_on_floor():
 		_squash = Vector2(1.3, 0.75)
+		if fall_speed > 350.0:
+			_dust(clampi(int(fall_speed / 90.0), 4, 10))
 
 	if frozen:
 		target = null
@@ -166,6 +171,12 @@ func _physics_process(delta: float) -> void:
 	if global_position.y > fall_limit:
 		fall_out()
 	_settle(delta)
+
+
+## A little puff of dust at the feet (jumping off and landing hard).
+func _dust(amount: int) -> void:
+	if get_parent() != null:
+		Fx.burst(get_parent(), global_position + Vector2(0, -2), Color(1, 0.97, 0.9, 0.85), amount, 110.0, 0.35, -60.0, 0.35)
 
 
 func _on_one_way() -> bool:
@@ -239,7 +250,7 @@ func _draw() -> void:
 		return
 	var moving := absf(velocity.x) > 30.0 and is_on_floor()
 	var airborne := station == null and not is_on_floor()
-	paint_sailor(self, Vector2.ZERO, color, facing, _squash, _t, moving, carrying, airborne, repair_time > 0.0, input.is_bot())
+	paint_sailor(self, Vector2.ZERO, color, facing, _squash, _t, moving, carrying, airborne, repair_time > 0.0, input.is_bot(), velocity.y)
 
 	var top := -HEIGHT * _squash.y - 16.0 - (24.0 if carrying != "" else 0.0)
 	draw_colored_polygon(PackedVector2Array([Vector2(-6, top - 7), Vector2(6, top - 7), Vector2(0, top)]), color)
@@ -267,61 +278,115 @@ func _draw_hint(pos: Vector2, label: String) -> void:
 
 
 ## Draws a sailor with its feet at `o`. Shared with the menu so both look the same.
+## `vy` (vertical speed) picks the jump pose: tucked while rising, arms out while falling.
 static func paint_sailor(ci: CanvasItem, o: Vector2, col: Color, facing: int, sq: Vector2, t: float,
-		moving := false, carrying := "", airborne := false, hammering := false, robot := false) -> void:
+		moving := false, carrying := "", airborne := false, hammering := false, robot := false, vy := 0.0) -> void:
+	var ink := Color("#2b2340")
+	var dark := col.darkened(0.4)
+	var phase := t * 14.0
+	var rising := airborne and vy < -120.0
+	var falling := airborne and vy > 160.0
+	if not moving and not airborne:
+		var breath := sin(t * 3.0) * 0.02
+		sq *= Vector2(1.0 + breath, 1.0 - breath)
 	var w := WIDTH * sq.x
 	var h := HEIGHT * sq.y
-	var dark := col.darkened(0.4)
-	var ink := Color("#2b2340")
-	var step := sin(t * 16.0) * 4.0 if moving else 0.0
-	var lift := 3.0 if airborne else 0.0
+	# Bob on every step, and lean a little into the walk.
+	var bob := absf(cos(phase)) * 2.5 if moving else 0.0
+	var lean := facing * 2.5 if moving else 0.0
+	var body_o := o + Vector2(lean * 0.5, -bob)
 
-	ci.draw_circle(o + Vector2(-6.0 + step, -4.0 - lift), 5.0, dark, true, -1.0, true)
-	ci.draw_circle(o + Vector2(6.0 - step, -4.0 - lift), 5.0, dark, true, -1.0, true)
+	if not airborne:
+		ci.draw_colored_polygon(Paint.ellipse(o + Vector2(0, 1), w * 0.62, 3.5, 16), Color(0.1, 0.05, 0.2, 0.18))
 
-	ci.draw_style_box(Paint.box(col, int(minf(w, h) * 0.45)), Rect2(o.x - w * 0.5, o.y - h, w, h - 5.0))
-	ci.draw_circle(o + Vector2(facing * 2.0, -h * 0.3), w * 0.28, col.lightened(0.5), true, -1.0, true)
+	# Feet: stepping arcs when walking, tucked when rising, dangling when falling.
+	for side: int in [-1, 1]:
+		var foot := Vector2(side * 6.0, -4.0)
+		if moving:
+			var swing := sin(phase) * side
+			foot += Vector2(-swing * 5.0 * facing, -maxf(0.0, cos(phase) * side) * 4.0)
+		elif rising:
+			foot = Vector2(side * 4.0, -9.0)
+		elif falling:
+			foot = Vector2(side * 8.5, -1.0 + sin(t * 20.0 + side) * 1.5)
+		elif airborne:
+			foot.y -= 3.0
+		ci.draw_circle(o + foot, 5.0, dark, true, -1.0, true)
 
-	# Scarf with a tail that flutters behind.
-	var ny := o.y - h * 0.55
-	ci.draw_rect(Rect2(o.x - w * 0.5 + 1.0, ny - 3.0, w - 2.0, 6.0), Color.WHITE)
-	var flap := sin(t * 11.0) * 3.0
+	# Body, shaded on the side away from the light, with a soft belly.
+	ci.draw_style_box(Paint.box(col.darkened(0.14), int(minf(w, h) * 0.45)), Rect2(body_o.x - w * 0.5, body_o.y - h, w, h - 5.0))
+	ci.draw_style_box(Paint.box(col, int(minf(w, h) * 0.42)), Rect2(body_o.x - w * 0.5 + 1.0, body_o.y - h, w - 4.0, h - 7.0))
+	ci.draw_circle(body_o + Vector2(facing * 2.0, -h * 0.3), w * 0.28, col.lightened(0.5), true, -1.0, true)
+	ci.draw_circle(body_o + Vector2(-w * 0.22, -h * 0.82), 3.0, Color(1, 1, 1, 0.45), true, -1.0, true)
+
+	# Hands (the coal carrier's arms and the hammer are drawn below instead).
+	if carrying == "" and not hammering:
+		var hand_col := col.darkened(0.18)
+		for side: int in [-1, 1]:
+			var hand := Vector2(side * (w * 0.5 + 1.5), -h * 0.42)
+			if moving:
+				hand.x += sin(phase) * side * 4.0 * facing
+				hand.y += absf(sin(phase)) * -1.5
+			elif rising:
+				hand = Vector2(side * (w * 0.5 + 2.0), -h * 0.9)
+			elif falling:
+				hand = Vector2(side * (w * 0.5 + 6.0), -h * 0.62 + sin(t * 28.0 + side) * 3.0)
+			ci.draw_circle(body_o + hand, 4.2, hand_col, true, -1.0, true)
+
+	# Scarf with a tail that flutters behind (harder when running).
+	var ny := body_o.y - h * 0.48
+	ci.draw_rect(Rect2(body_o.x - w * 0.5 + 1.0, ny - 3.0, w - 2.0, 6.0), Color.WHITE)
+	var flap := sin(t * (18.0 if moving else 11.0)) * (4.0 if moving or airborne else 3.0)
 	var back := -facing
+	var tail := 15.0 if moving else 11.0
 	ci.draw_colored_polygon(PackedVector2Array([
-		Vector2(o.x + back * (w * 0.5 - 2.0), ny - 2.0),
-		Vector2(o.x + back * (w * 0.5 + 11.0), ny + 3.0 + flap),
-		Vector2(o.x + back * (w * 0.5 + 4.0), ny + 8.0),
+		Vector2(body_o.x + back * (w * 0.5 - 2.0), ny - 2.0),
+		Vector2(body_o.x + back * (w * 0.5 + tail), ny + 3.0 + flap - (4.0 if falling else 0.0)),
+		Vector2(body_o.x + back * (w * 0.5 + 4.0), ny + 8.0),
 	]), Color.WHITE)
 
-	var ey := o.y - h * 0.74
-	var ex := o.x + facing * 3.5
-	var blink := fmod(t, 3.7) < 0.12
+	var ey := body_o.y - h * 0.74
+	var ex := body_o.x + facing * 3.5 + lean * 0.4
+	var blink := fmod(t, 3.7) < 0.12 and not airborne
 	for side: int in [-1, 1]:
 		var e := Vector2(ex + side * 5.5, ey)
 		if blink:
 			ci.draw_line(e + Vector2(-3, 0), e + Vector2(3, 0), ink, 2.0, true)
 		else:
-			ci.draw_circle(e, 4.2, Color.WHITE, true, -1.0, true)
-			ci.draw_circle(e + Vector2(facing * 1.3, 0.5), 2.3, ink, true, -1.0, true)
+			var r := 4.8 if falling else 4.2
+			ci.draw_circle(e, r, Color.WHITE, true, -1.0, true)
+			var look := Vector2(facing * 1.3, 0.5)
+			if rising:
+				look.y = -1.2
+			elif falling:
+				look.y = 1.4
+			ci.draw_circle(e + look, 2.3, ink, true, -1.0, true)
+			ci.draw_circle(e + look + Vector2(-0.8, -0.9), 0.8, Color.WHITE, true, -1.0, true)
 	var blush := Color(1, 0.55, 0.6, 0.55)
 	ci.draw_circle(Vector2(ex - 9.5, ey + 6.0), 2.6, blush, true, -1.0, true)
 	ci.draw_circle(Vector2(ex + 9.5, ey + 6.0), 2.6, blush, true, -1.0, true)
+	# Mouth: a smile, or a little "o" in the air.
+	var mouth := Vector2(ex, ey + 5.5)
+	if airborne:
+		ci.draw_circle(mouth + Vector2(0, 0.5), 2.2 if falling else 1.6, ink, true, -1.0, true)
+	else:
+		ci.draw_arc(mouth + Vector2(0, -1.5), 2.6, 0.35, PI - 0.35, 8, ink, 1.6, true)
 
 	# Sailor cap with a pompom.
-	var hy := o.y - h
-	ci.draw_style_box(Paint.box(Color.WHITE, 4), Rect2(o.x - w * 0.42, hy - 5.0, w * 0.84, 8.0))
-	ci.draw_rect(Rect2(o.x - w * 0.42, hy + 1.0, w * 0.84, 2.0), col.darkened(0.2))
+	var hy := body_o.y - h
+	ci.draw_style_box(Paint.box(Color.WHITE, 4), Rect2(body_o.x - w * 0.42, hy - 5.0, w * 0.84, 8.0))
+	ci.draw_rect(Rect2(body_o.x - w * 0.42, hy + 1.0, w * 0.84, 2.0), col.darkened(0.2))
 	if robot:
 		# Computer-controlled helpers wear an antenna with a blinking light instead of a pompom.
-		ci.draw_line(Vector2(o.x, hy - 4.0), Vector2(o.x, hy - 16.0), Color("#6f7389"), 2.0, true)
+		ci.draw_line(Vector2(body_o.x, hy - 4.0), Vector2(body_o.x, hy - 16.0), Color("#6f7389"), 2.0, true)
 		var blink_light := 0.5 + 0.5 * sin(t * 6.0)
-		ci.draw_circle(Vector2(o.x, hy - 18.0), 4.0, Color("#7dffa8").lerp(Color.WHITE, blink_light * 0.5), true, -1.0, true)
+		ci.draw_circle(Vector2(body_o.x, hy - 18.0), 4.0, Color("#7dffa8").lerp(Color.WHITE, blink_light * 0.5), true, -1.0, true)
 	else:
-		ci.draw_circle(Vector2(o.x, hy - 7.0), 3.5, col.lightened(0.25), true, -1.0, true)
+		ci.draw_circle(Vector2(body_o.x, hy - 7.0), 3.5, col.lightened(0.25), true, -1.0, true)
 
 	if hammering:
 		var a := 1.1 - absf(sin(t * 14.0)) * 1.4
-		var hand := o + Vector2(facing * (w * 0.5 + 1.0), -h * 0.45)
+		var hand := body_o + Vector2(facing * (w * 0.5 + 1.0), -h * 0.45)
 		var d := Vector2(facing * cos(a), -sin(a))
 		var tip := hand + d * 16.0
 		var perp := Vector2(-d.y, d.x)
@@ -329,9 +394,9 @@ static func paint_sailor(ci: CanvasItem, o: Vector2, col: Color, facing: int, sq
 		ci.draw_line(tip - perp * 6.0, tip + perp * 6.0, Color("#6f7389"), 6.0, true)
 
 	if carrying == "coal":
-		var c := o + Vector2(0, -h - 20.0)
-		ci.draw_line(o + Vector2(-w * 0.5, -h * 0.6), c + Vector2(-8, 4), col.darkened(0.15), 4.0, true)
-		ci.draw_line(o + Vector2(w * 0.5, -h * 0.6), c + Vector2(8, 4), col.darkened(0.15), 4.0, true)
+		var c := body_o + Vector2(0, -h - 20.0)
+		ci.draw_line(body_o + Vector2(-w * 0.5, -h * 0.6), c + Vector2(-8, 4), col.darkened(0.15), 4.0, true)
+		ci.draw_line(body_o + Vector2(w * 0.5, -h * 0.6), c + Vector2(8, 4), col.darkened(0.15), 4.0, true)
 		ci.draw_circle(c, 11.0, Color("#3b3440"), true, -1.0, true)
 		ci.draw_circle(c + Vector2(-3, -4), 3.5, Color("#6a5f73"), true, -1.0, true)
 		ci.draw_circle(c + Vector2(4, 3), 2.2, Color("#ff9a3c"), true, -1.0, true)

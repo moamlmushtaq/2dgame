@@ -38,10 +38,21 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_style_box(Paint.box(Color("#b8b3c9"), 8), Rect2(Vector2.ZERO, size))
+	var stone := Color("#b8b3c9")
+	draw_style_box(Paint.box(stone.darkened(0.15), 8), Rect2(Vector2.ZERO, size))
+	draw_style_box(Paint.box(stone, 7), Rect2(0, 0, size.x - 4.0, size.y - 4.0))
+	# Mortar lines between stone blocks.
+	for k in int(size.y / 28.0):
+		var y := 22.0 + k * 28.0
+		if y < size.y - 6.0:
+			draw_line(Vector2(4, y), Vector2(size.x - 8.0, y), stone.darkened(0.2), 1.5)
+			var jx := size.x * (0.35 if k % 2 == 0 else 0.65)
+			draw_line(Vector2(jx, y), Vector2(jx, minf(y + 28.0, size.y - 6.0)), stone.darkened(0.2), 1.5)
 	draw_style_box(Paint.box(Color("#d6d1e4"), 6), Rect2(4, 4, size.x - 8.0, 10))
 	var rune := Color("#7fe3ff").lerp(Color("#5b5675"), 1.0 - _glow)
 	var c := Vector2(size.x * 0.5, 38)
+	if _glow > 0.05:
+		draw_circle(c, 22.0, Color(0.5, 0.9, 1.0, 0.18 * _glow), true, -1.0, true)
 	draw_arc(c, 14.0, 0.0, TAU, 24, rune, 3.0, true)
 	draw_line(c + Vector2(0, -10), c + Vector2(0, 10), rune, 3.0, true)
 	draw_line(c + Vector2(-8, 2), c + Vector2(8, 2), rune, 3.0, true)

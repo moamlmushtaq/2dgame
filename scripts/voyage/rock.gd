@@ -1,28 +1,28 @@
 class_name Rock
 extends Node2D
 ## A floating boulder drifting at the ship. Steer around it with the helm,
-## or break it with three cannon hits.
+## or break it with three cannon hits. Each hit leaves a crack.
+
+const TEXTURE := preload("res://assets/art/rocks/boulder.png")
 
 var voyage
 var radius := 55.0
 var speed := 230.0
 var hp := 3
-var _pts := PackedVector2Array()
+var _flip := false
 var _spin := 0.0
 var _flash := 0.0
 
 
 func _ready() -> void:
 	add_to_group("rocks")
-	for i in 11:
-		var a := TAU * i / 11.0
-		var r := radius * randf_range(0.8, 1.08)
-		_pts.append(Vector2(cos(a) * r, sin(a) * r * 0.85))
+	_flip = randf() < 0.5
+	_spin = randf_range(-0.4, 0.4)
 
 
 func _physics_process(delta: float) -> void:
 	position.x -= speed * voyage.speed_factor() * delta
-	_spin += delta * 0.3
+	_spin += delta * 0.15
 	_flash -= delta
 	if voyage.is_sailing() and _hits_hull():
 		voyage.rock_hit(self)
@@ -57,16 +57,22 @@ func damage(amount: int) -> void:
 
 
 func _draw() -> void:
-	var base := Color("#9a8aa6") if _flash <= 0.0 else Color.WHITE
+	var tint := Color(1.9, 1.9, 1.9) if _flash > 0.0 else Color.WHITE
+	var sc := radius * 2.25 / TEXTURE.get_width()
+	draw_set_transform(Vector2.ZERO, _spin, Vector2(-sc if _flip else sc, sc))
+	draw_texture(TEXTURE, -TEXTURE.get_size() * 0.5, tint)
 	draw_set_transform(Vector2.ZERO, _spin)
-	draw_colored_polygon(_pts, base.darkened(0.3))
-	var top := PackedVector2Array()
-	for p in _pts:
-		top.append(p * 0.8 + Vector2(-radius * 0.1, -radius * 0.12))
-	draw_colored_polygon(top, base)
-	draw_line(Vector2(-radius * 0.35, -radius * 0.1), Vector2(radius * 0.1, radius * 0.25), base.darkened(0.45), 3.0, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(radius * 0.2, -radius * 0.5),
-		Vector2(radius * 0.36, -radius * 0.98), Vector2(radius * 0.52, -radius * 0.48)]), Color("#8ff0ff"))
-	draw_colored_polygon(PackedVector2Array([Vector2(radius * 0.02, -radius * 0.55),
-		Vector2(radius * 0.1, -radius * 0.82), Vector2(radius * 0.22, -radius * 0.52)]), Color("#c8f8ff"))
+	var crack := Color("#3d4450")
+	if hp <= 2:
+		draw_polyline(PackedVector2Array([Vector2(-radius * 0.5, -radius * 0.2), Vector2(-radius * 0.15, radius * 0.05),
+			Vector2(-radius * 0.25, radius * 0.4)]), crack, 3.0, true)
+	if hp <= 1:
+		draw_polyline(PackedVector2Array([Vector2(radius * 0.45, -radius * 0.1), Vector2(radius * 0.1, radius * 0.15),
+			Vector2(radius * 0.2, radius * 0.5)]), crack, 3.0, true)
+	# Sky crystals growing out of the top.
+	draw_colored_polygon(PackedVector2Array([Vector2(radius * 0.08, -radius * 0.45),
+		Vector2(radius * 0.26, -radius * 0.98), Vector2(radius * 0.44, -radius * 0.42)]), Color("#8ff0ff"))
+	draw_colored_polygon(PackedVector2Array([Vector2(-radius * 0.1, -radius * 0.5),
+		Vector2(-radius * 0.02, -radius * 0.8), Vector2(radius * 0.12, -radius * 0.46)]), Color("#c8f8ff"))
+	draw_line(Vector2(radius * 0.26, -radius * 0.9), Vector2(radius * 0.3, -radius * 0.55), Color(1, 1, 1, 0.7), 2.0, true)
 	draw_set_transform(Vector2.ZERO)

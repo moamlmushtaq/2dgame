@@ -34,12 +34,18 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(-5, -44, 10, 44), Color("#6f7389"))
+	Paint.ground_shadow(self, Vector2.ZERO, 22.0)
+	draw_style_box(Paint.box(Color("#50546b"), 5), Rect2(-16, -8, 32, 9))
+	draw_rect(Rect2(-5, -44, 10, 40), Color("#6f7389"))
+	draw_rect(Rect2(-5, -44, 3, 40), Color("#9a9fbf"))
 	var c := Vector2(0, -48)
 	var metal := Color("#50546b")
 	draw_arc(c, 18.0, 0.0, TAU, 28, metal, 5.0, true)
+	draw_arc(c, 19.5, PI * 0.9, PI * 1.6, 12, Color(1, 1, 1, 0.3), 1.5, true)
 	for i in 4:
 		draw_line(c, c + Vector2.from_angle(_angle + i * TAU / 4.0) * 18.0, metal, 3.0, true)
 	var handle := c + Vector2.from_angle(_angle) * 18.0
-	draw_circle(handle, 5.0, Color("#ffcf5c"), true, -1.0, true)
+	draw_circle(handle, 5.5, Color("#d9a63a"), true, -1.0, true)
+	draw_circle(handle + Vector2(-1, -1), 4.5, Color("#ffcf5c"), true, -1.0, true)
 	draw_circle(c, 5.0, Color("#ffcf5c") if turning else Color("#9a9cb8"), true, -1.0, true)
+	draw_circle(c + Vector2(-1.5, -1.5), 1.6, Color(1, 1, 1, 0.6), true, -1.0, true)

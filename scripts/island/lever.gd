@@ -34,7 +34,17 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var tip := Vector2(0, -6) + Vector2.from_angle(-PI * 0.5 + _angle) * 34.0
-	draw_line(Vector2(0, -6), tip, Color("#6f7389"), 5.0, true)
-	draw_circle(tip, 7.0, Color("#5fd49a") if on else Color("#ff6f7d"), true, -1.0, true)
-	draw_style_box(Paint.box(Color("#50546b"), 5), Rect2(-18, -10, 36, 10))
+	Paint.ground_shadow(self, Vector2(0, 0), 24.0)
+	var pivot := Vector2(0, -6)
+	var tip := pivot + Vector2.from_angle(-PI * 0.5 + _angle) * 34.0
+	var knob := Color("#5fd49a") if on else Color("#ff6f7d")
+	draw_line(pivot, tip, Color("#4b4f68"), 6.0, true)
+	draw_line(pivot + Vector2(-1, 0), tip + Vector2(-1, 0), Color("#9a9fbf"), 2.0, true)
+	draw_circle(tip, 8.0, knob.darkened(0.25), true, -1.0, true)
+	draw_circle(tip + Vector2(-0.5, -0.5), 7.0, knob, true, -1.0, true)
+	draw_circle(tip + Vector2(-2.5, -2.5), 2.4, Color(1, 1, 1, 0.7), true, -1.0, true)
+	# Stone base with a lit top edge.
+	draw_style_box(Paint.box(Color("#3f4257"), 6), Rect2(-20, -11, 40, 12))
+	draw_style_box(Paint.box(Color("#50546b"), 5), Rect2(-19, -11, 38, 9))
+	draw_line(Vector2(-15, -10), Vector2(15, -10), Color(1, 1, 1, 0.25), 2.0)
+	draw_circle(pivot, 4.0, Color("#ffd27a"), true, -1.0, true)

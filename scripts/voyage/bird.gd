@@ -1,6 +1,16 @@
 class_name Bird
 extends Node2D
 ## A grumpy storm bird that dives at the deck and pecks a hole in it.
+## Art: Bevouliin's flying bird sprites (CC0, see assets/art/CREDITS.md).
+
+const FRAMES := {
+	"red": [preload("res://assets/art/birds/red_1.png"), preload("res://assets/art/birds/red_2.png"),
+		preload("res://assets/art/birds/red_3.png"), preload("res://assets/art/birds/red_4.png")],
+	"grey": [preload("res://assets/art/birds/grey_1.png"), preload("res://assets/art/birds/grey_2.png"),
+		preload("res://assets/art/birds/grey_3.png"), preload("res://assets/art/birds/grey_4.png")],
+}
+## On-screen width of the bird in pixels.
+const WIDTH := 76.0
 
 var voyage
 var target := Vector2.ZERO
@@ -8,12 +18,14 @@ var speed := 140.0
 var fleeing := false
 var _t := 0.0
 var _vel := Vector2.ZERO
+var _frames: Array = FRAMES["red"]
 
 
 func _ready() -> void:
 	add_to_group("birds")
 	z_index = 8
 	_t = randf() * TAU
+	_frames = FRAMES["red" if randf() < 0.6 else "grey"]
 
 
 func _physics_process(delta: float) -> void:
@@ -43,14 +55,10 @@ func flee() -> void:
 
 func _draw() -> void:
 	var f := -1.0 if _vel.x < 0.0 else 1.0
-	var flap := sin(_t * 14.0)
-	var ink := Color("#1d1530")
-	draw_colored_polygon(PackedVector2Array([Vector2(-4 * f, -4), Vector2(-18 * f, -18 - flap * 14.0), Vector2(8 * f, -6)]), Color("#43356e"))
-	draw_colored_polygon(PackedVector2Array([Vector2(-16 * f, -2), Vector2(-30 * f, -10), Vector2(-28 * f, 6)]), Color("#43356e"))
-	draw_colored_polygon(Paint.ellipse(Vector2.ZERO, 20.0, 15.0, 24), Color("#5b4b8a"))
-	draw_colored_polygon(Paint.ellipse(Vector2(4 * f, 5), 11.0, 8.0, 18), Color("#8e7fc4"))
-	draw_colored_polygon(PackedVector2Array([Vector2(17 * f, -3), Vector2(29 * f, 1), Vector2(17 * f, 5)]), Color("#ffc53d"))
-	draw_circle(Vector2(9 * f, -5), 4.5, Color.WHITE, true, -1.0, true)
-	draw_circle(Vector2(10.5 * f, -4.5), 2.2, ink, true, -1.0, true)
-	draw_line(Vector2(4 * f, -11), Vector2(14 * f, -8), ink, 2.5, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(-6 * f, -2), Vector2(-14 * f, -14 + flap * 10.0), Vector2(8 * f, -2)]), Color("#6d5ca3"))
+	var tex: Texture2D = _frames[int(_t * (18.0 if fleeing else 12.0)) % _frames.size()]
+	var sc := WIDTH / tex.get_width()
+	# Tilt into the dive a little.
+	var tilt := clampf(_vel.y / maxf(speed, 1.0), -0.6, 0.6) * 0.5 * f
+	draw_set_transform(Vector2.ZERO, tilt, Vector2(sc * f, sc))
+	draw_texture(tex, -tex.get_size() * 0.5)
+	draw_set_transform(Vector2.ZERO)

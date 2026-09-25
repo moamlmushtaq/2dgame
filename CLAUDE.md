@@ -45,8 +45,11 @@ export_presets.cfg      Windows / Linux / Web. .github/workflows/build.yml build
 
 ## Conventions
 
-- **Everything is drawn in code** with `_draw()` — there are no image or audio files.
-  Keep that style: shapes, `Paint.box()` rounded boxes, `Paint.text()` for Arabic text.
+- **Drawn in code** with `_draw()`: shapes, `Paint.box()` rounded boxes, `Paint.text()` for
+  Arabic text. No audio files. A few hand-drawn CC0 images live in `assets/art/` (sky clouds,
+  far islands and peaks, the boulder, birds, lanterns), drawn with `draw_texture()` from
+  `_draw()` and tinted per scene. Every image must be CC0 and listed in
+  `assets/art/CREDITS.md`; crop and shrink them before adding (the web build stays small).
 - Scenes are minimal `.tscn` files; nodes are created in `_ready()`.
 - Physics layers: 1 world, 2 players, 4 one-way platforms, 8 player heads. Players pass
   through each other but each carries a one-way "head" platform, so friends can stand on
@@ -84,7 +87,8 @@ PIECES=4 tests/run.sh voyage 3     # 3 pirate battles
 
 Simulations run with `--fixed-fps 60`, so they finish in seconds. When changing balance
 or bot logic, run several times — outcomes are random. Current baseline with an idle
-human + 2 bots: normal voyage wins most runs (roughly 3 in 4), pirate battle about 2 in 3.
+human + 2 bots: normal voyage wins nearly every run (12 of 12 after the mast cannon
+could dip below the horizon), pirate battle about 2 in 3 (65-70% over 30+ runs).
 For visual checks, run the game and take screenshots (on Linux, `xvfb-run` with
 `--rendering-driver opengl3` works for headless screenshots via
 `get_viewport().get_texture().get_image().save_png()`).

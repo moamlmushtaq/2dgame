@@ -69,14 +69,26 @@ func _draw() -> void:
 	if opened:
 		draw_circle(Vector2(0, -50), 60.0 * _piece, Color(1, 0.9, 0.5, 0.25), true, -1.0, true)
 
-	draw_style_box(Paint.box(Color("#a8643c"), 8), Rect2(-36, -44, 72, 44))
+	Paint.ground_shadow(self, Vector2(0, 0), 46.0, 0.25)
+	var wood := Color("#a8643c")
+	draw_style_box(Paint.box(wood.darkened(0.15), 8), Rect2(-36, -44, 72, 44))
+	draw_style_box(Paint.box(wood, 7), Rect2(-36, -44, 70, 41))
+	for y: float in [-28.0, -14.0]:
+		draw_line(Vector2(-34, y), Vector2(34, y), wood.darkened(0.25), 1.5)
 	draw_rect(Rect2(-36, -40, 72, 6), gold)
 	draw_rect(Rect2(-26, -44, 6, 44), gold)
 	draw_rect(Rect2(20, -44, 6, 44), gold)
+	draw_line(Vector2(-36, -39), Vector2(36, -39), Color(1, 1, 1, 0.45), 1.5)
+	for bx: float in [-24.0, 22.0]:
+		draw_line(Vector2(bx, -44), Vector2(bx, 0), Color(1, 1, 1, 0.35), 1.5)
+		draw_circle(Vector2(bx + 1.0, -8), 1.6, gold.darkened(0.35), true, -1.0, true)
 
 	draw_set_transform(Vector2(-36, -44), -_lid * 1.9)
 	draw_style_box(Paint.box(Color("#bf7446"), 10), Rect2(0, -22, 72, 24))
+	draw_style_box(Paint.box(Color("#d18a58"), 8), Rect2(3, -21, 60, 8))
 	draw_rect(Rect2(0, -2, 72, 4), gold)
+	draw_rect(Rect2(10, -22, 6, 22), gold)
+	draw_rect(Rect2(56, -22, 6, 22), gold)
 	draw_set_transform(Vector2.ZERO)
 	if not opened:
 		draw_circle(Vector2(0, -38), 7.0, gold, true, -1.0, true)

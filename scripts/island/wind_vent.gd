@@ -42,7 +42,10 @@ func _draw() -> void:
 			var x := -width * 0.4 + i * width * 0.8 / 6.0 + sin(_t * 3.0 + i) * 4.0
 			var y := -fposmod(_t * 420.0 + i * 97.0, h)
 			draw_line(Vector2(x, y), Vector2(x, y - 34.0), Color(1, 1, 1, 0.6 * _power), 3.0, true)
-	draw_style_box(Paint.box(Color("#5b5675"), 6), Rect2(-width * 0.5 - 6.0, -8, width + 12.0, 12))
+	Paint.ground_shadow(self, Vector2(0, 3), width * 0.6, 0.15)
+	draw_style_box(Paint.box(Color("#46425c"), 6), Rect2(-width * 0.5 - 6.0, -8, width + 12.0, 12))
+	draw_style_box(Paint.box(Color("#5b5675"), 5), Rect2(-width * 0.5 - 5.0, -8, width + 10.0, 8))
+	draw_line(Vector2(-width * 0.5, -7), Vector2(width * 0.5, -7), Color(1, 1, 1, 0.22), 1.5)
 	for i in 5:
 		var x := -width * 0.5 + 8.0 + i * (width - 16.0) / 4.0
 		draw_line(Vector2(x, -6), Vector2(x, 2), Color("#8ff0ff") if powered else Color("#2f2c40"), 3.0)

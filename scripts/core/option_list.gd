@@ -54,7 +54,13 @@ func draw(ci: CanvasItem, center: Vector2, width := 380.0, row := 50.0, alpha :=
 		var selected := i == index
 		var r := Rect2(center.x - width * 0.5, top + i * row + 4.0, width, row - 8.0)
 		var bg := Color(1, 1, 1, 0.94 * alpha) if selected else Color(0.22, 0.17, 0.45, 0.55 * alpha)
-		ci.draw_style_box(Paint.box(bg, int((row - 8.0) * 0.5), Color(0, 0, 0, 0), 0, 6 if selected else 0), r)
+		var radius := int((row - 8.0) * 0.5)
+		if selected:
+			ci.draw_style_box(Paint.box(bg, radius, Color(0, 0, 0, 0), 0, 6), r)
+			# Glossy top half so the chosen button looks raised.
+			ci.draw_style_box(Paint.box(Color(1, 1, 1, 0.55 * alpha), radius), Rect2(r.position + Vector2(6, 3), Vector2(r.size.x - 12.0, r.size.y * 0.42)))
+		else:
+			ci.draw_style_box(Paint.box(bg, radius, Color(1, 1, 1, 0.22 * alpha), 2), r)
 		var fg := Color(0.23, 0.18, 0.42, alpha) if selected else Color(1, 1, 1, alpha)
 		Paint.text(ci, r.get_center(), label_of(i), 20, fg)
 		if selected and (items[i]["change"] as Callable).is_valid():

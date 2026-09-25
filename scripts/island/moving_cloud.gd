@@ -35,6 +35,11 @@ func _draw() -> void:
 	# Tinted and given a face so it reads as a platform, not a background cloud.
 	var shade := Color("#b9b0ec")
 	var body := Color("#f6f3ff")
+	# A soft painted cloud behind the platform so it matches the sky's clouds.
+	var soft: Texture2D = SkyBackdrop.SOFT_CLOUDS[0]
+	draw_set_transform(Vector2(0, 8), 0.0, Vector2(width / soft.get_width() * 1.25, 0.55))
+	draw_texture(soft, -soft.get_size() * 0.5, Color(1.25, 1.2, 1.35, 0.8))
+	draw_set_transform(Vector2.ZERO)
 	for p: Vector3 in [Vector3(-40, 12, 20), Vector3(0, 14, 24), Vector3(40, 12, 20)]:
 		draw_circle(Vector2(p.x, p.y + 6.0), p.z, shade, true, -1.0, true)
 	for p: Vector3 in [Vector3(-44, 8, 18), Vector3(-18, 2, 24), Vector3(14, 0, 26), Vector3(44, 8, 18)]:

@@ -1,13 +1,28 @@
 class_name SkyBackdrop
 extends Node2D
-## Painted sky backdrop: gradient, glowing sun, far islands and parallax clouds.
+## Painted sky backdrop: gradient, glowing sun, distant peaks, floating islands and
+## parallax clouds. The clouds, islands and peaks are hand-drawn art from the game Glitch
+## (CC0, see assets/art/CREDITS.md), tinted to match each scene's colours.
 ## Put it inside a CanvasLayer so it always fills the screen.
 
 const LAYERS := [
-	{"factor": 0.12, "mix": 0.45, "scale": 0.55, "y_min": 0.08, "y_max": 0.5, "count": 7},
+	{"factor": 0.12, "mix": 0.45, "scale": 0.5, "y_min": 0.08, "y_max": 0.5, "count": 7},
 	{"factor": 0.3, "mix": 0.72, "scale": 0.8, "y_min": 0.25, "y_max": 0.8, "count": 6},
-	{"factor": 0.65, "mix": 0.95, "scale": 1.1, "y_min": 0.55, "y_max": 1.05, "count": 5},
+	{"factor": 0.65, "mix": 0.95, "scale": 1.15, "y_min": 0.55, "y_max": 1.05, "count": 5},
 ]
+## Far clouds are flat, stylised shapes; nearer ones are soft and fluffy.
+const FAR_CLOUDS := [
+	preload("res://assets/art/sky/cloud_far_1.png"), preload("res://assets/art/sky/cloud_far_2.png"),
+	preload("res://assets/art/sky/cloud_far_3.png"), preload("res://assets/art/sky/cloud_far_4.png"),
+]
+const SOFT_CLOUDS := [preload("res://assets/art/sky/cloud_soft_1.png"), preload("res://assets/art/sky/cloud_soft_2.png")]
+const ISLANDS := [
+	preload("res://assets/art/sky/island_1.png"), preload("res://assets/art/sky/island_2.png"),
+	preload("res://assets/art/sky/island_3.png"),
+]
+const PEAKS := [preload("res://assets/art/sky/peaks_1.png"), preload("res://assets/art/sky/peaks_2.png")]
+## Extra room past the screen edges so wide clouds wrap around out of sight.
+const WRAP_MARGIN := 500.0
 
 var top_color := Color("#5ba8ff")
 var bottom_color := Color("#ffe4ef")
@@ -24,6 +39,7 @@ var scroll := 0.0
 
 var _clouds: Array[Dictionary] = []
 var _islands: Array[Dictionary] = []
+var _peaks: Array[Dictionary] = []
 var _stars := PackedVector3Array()
 var _t := 0.0
 
@@ -34,22 +50,22 @@ func _ready() -> void:
 	for li in LAYERS.size():
 		var layer: Dictionary = LAYERS[li]
 		for i in int(layer["count"]):
-			var puffs: Array[Vector3] = []
-			var n := rng.randi_range(4, 7)
-			var width := rng.randf_range(110.0, 220.0)
-			for k in n:
-				var f := float(k) / float(n - 1)
-				var bump := sin(f * PI)
-				puffs.append(Vector3((f - 0.5) * width, -bump * rng.randf_range(14.0, 34.0),
-					rng.randf_range(24.0, 36.0) * (0.65 + bump * 0.55)))
+			var far := li == 0
+			var textures: Array = FAR_CLOUDS if far else SOFT_CLOUDS
 			_clouds.append({
 				"layer": li,
-				"x": rng.randf_range(0.0, 2200.0),
+				"x": rng.randf_range(0.0, 2400.0),
 				"y": rng.randf_range(layer["y_min"], layer["y_max"]),
-				"puffs": puffs,
+				"tex": textures[rng.randi() % textures.size()],
+				"size": rng.randf_range(0.8, 1.25) * (0.7 if far else 1.0),
+				"flip": rng.randf() < 0.5,
 			})
 	for i in 4:
-		_islands.append({"x": rng.randf_range(0.0, 2200.0), "y": rng.randf_range(0.35, 0.6), "w": rng.randf_range(90.0, 180.0)})
+		_islands.append({"x": rng.randf_range(0.0, 2400.0), "y": rng.randf_range(0.35, 0.6),
+			"tex": ISLANDS[i % ISLANDS.size()], "size": rng.randf_range(0.16, 0.28), "flip": rng.randf() < 0.5})
+	for i in 3:
+		_peaks.append({"x": i * 820.0 + rng.randf_range(0.0, 200.0), "tex": PEAKS[i % PEAKS.size()],
+			"size": rng.randf_range(0.9, 1.1)})
 	for i in 70:
 		_stars.append(Vector3(rng.randf(), rng.randf() * 0.55, rng.randf() * TAU))
 
@@ -75,39 +91,34 @@ func _draw() -> void:
 		draw_circle(sp, 70.0 + i * 30.0, Color(sun_color, 0.09 - i * 0.013), true, -1.0, true)
 	draw_circle(sp, 58.0, sun_color, true, -1.0, true)
 
-	var period := s.x + 800.0
+	var period := s.x + WRAP_MARGIN * 2.0
 	if far_islands:
-		var ic := top_color.lerp(bottom_color, 0.55).darkened(0.05)
+		# Snowy peaks far below, faded into the haze near the horizon.
+		var haze := Color(top_color.lerp(bottom_color, 0.75), 0.5)
+		for pk in _peaks:
+			var x: float = fposmod(pk["x"] - (scroll + parallax.x) * 0.03, period) - WRAP_MARGIN
+			var tex: Texture2D = pk["tex"]
+			_sprite(tex, Vector2(x, s.y * 0.93 - parallax.y * 0.03 - tex.get_height() * 0.3), pk["size"], false, haze)
+		# Far away, so mostly see-through and tinted by the sky.
+		var ic := Color(top_color.lerp(bottom_color, 0.55).lerp(Color.WHITE, 0.4), 0.55)
 		for isl in _islands:
-			var x: float = fposmod(isl["x"] - (scroll + parallax.x) * 0.06, period) - 400.0
+			var x: float = fposmod(isl["x"] - (scroll + parallax.x) * 0.06, period) - WRAP_MARGIN
 			var y: float = isl["y"] * s.y - parallax.y * 0.05
-			_far_island(Vector2(x, y), isl["w"], ic)
+			_sprite(isl["tex"], Vector2(x, y), isl["size"], isl["flip"], ic)
 
 	for c in _clouds:
 		var layer: Dictionary = LAYERS[c["layer"]]
 		var f: float = layer["factor"]
-		var x: float = fposmod(c["x"] - (scroll + parallax.x) * f, period) - 400.0
+		var x: float = fposmod(c["x"] - (scroll + parallax.x) * f, period) - WRAP_MARGIN
 		var y: float = c["y"] * s.y - parallax.y * f * 0.6
-		_cloud(Vector2(x, y), c["puffs"], layer["scale"], bottom_color.lerp(cloud_color, layer["mix"]))
+		# The cloud art is a soft grey-white; lift it so clouds read as bright white.
+		# Nearer layers are a little more see-through so text in front of them stays readable.
+		var col := bottom_color.lerp(cloud_color, layer["mix"]) * Color(1.25, 1.25, 1.25, 0.95 - c["layer"] * 0.1)
+		_sprite(c["tex"], Vector2(x, y), layer["scale"] * c["size"], c["flip"], col)
 
 
-func _cloud(pos: Vector2, puffs: Array, sc: float, col: Color) -> void:
-	var shade := col.darkened(0.1)
-	for p: Vector3 in puffs:
-		draw_circle(pos + Vector2(p.x, p.y + 7.0) * sc, p.z * sc, shade, true, -1.0, true)
-	for p: Vector3 in puffs:
-		draw_circle(pos + Vector2(p.x, p.y) * sc, p.z * sc, col, true, -1.0, true)
-	var shine := col.lightened(0.2)
-	for p: Vector3 in puffs:
-		draw_circle(pos + Vector2(p.x - p.z * 0.25, p.y - p.z * 0.3) * sc, p.z * 0.45 * sc, shine, true, -1.0, true)
-
-
-func _far_island(pos: Vector2, w: float, col: Color) -> void:
-	draw_colored_polygon(PackedVector2Array([
-		pos + Vector2(-w * 0.5, 0), pos + Vector2(w * 0.5, 0), pos + Vector2(w * 0.3, w * 0.25),
-		pos + Vector2(w * 0.05, w * 0.55), pos + Vector2(-w * 0.2, w * 0.3),
-	]), col)
-	var grass := col.lerp(Color("#7fd18b"), 0.35)
-	draw_rect(Rect2(pos.x - w * 0.5, pos.y - 5.0, w, 7.0), grass)
-	draw_circle(pos + Vector2(-w * 0.15, -14.0), 10.0, grass, true, -1.0, true)
-	draw_circle(pos + Vector2(w * 0.2, -10.0), 7.0, grass, true, -1.0, true)
+## Draws `tex` centred on `pos`, scaled, optionally mirrored and tinted.
+func _sprite(tex: Texture2D, pos: Vector2, sc: float, flip: bool, tint: Color) -> void:
+	draw_set_transform(pos, 0.0, Vector2(-sc if flip else sc, sc))
+	draw_texture(tex, -tex.get_size() * 0.5, tint)
+	draw_set_transform(Vector2.ZERO)

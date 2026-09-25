@@ -145,7 +145,7 @@ func _draw() -> void:
 	_key_line(672.0, "اختر بالأسهم واضغط زر التفاعل", ["E", "/", "X"], 0.85)
 	var notes := ["الحركة: WASD", "أو الأسهم", "أو عصا يد التحكم"]
 	for i in notes.size():
-		Paint.text(self, Vector2(820.0 - i * 180.0, 708), notes[i], 14, Color(1, 1, 1, 0.8), false, 3, Color(INK, 0.4))
+		Paint.text(self, Vector2(820.0 - i * 180.0, 708), notes[i], 14, Color(1, 1, 1, 0.9), false, 4, Color(INK, 0.7))
 
 	if _page == Page.SETTINGS:
 		_draw_settings()
@@ -193,7 +193,7 @@ func _key_line(y: float, label: String, keys: Array, alpha: float) -> void:
 		widths.append(kw)
 		caps += kw + 8.0
 	var x := 640.0 + (lw + 16.0 + caps) * 0.5
-	Paint.text(self, Vector2(x - lw * 0.5, y), label, fs, Color(1, 1, 1, alpha), true, 4, Color(INK, 0.45 * alpha))
+	Paint.text(self, Vector2(x - lw * 0.5, y), label, fs, Color(1, 1, 1, alpha), true, 5, Color(INK, 0.75 * alpha))
 	x -= lw + 16.0
 	for i in keys.size():
 		var rr := Rect2(x - widths[i], y - 16.0, widths[i], 32)

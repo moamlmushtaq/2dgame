@@ -35,6 +35,11 @@ static func box(bg: Color, radius := 12, border := Color(0, 0, 0, 0), border_wid
 	return sb
 
 
+## A soft oval shadow where something touches the ground at `c`.
+static func ground_shadow(ci: CanvasItem, c: Vector2, rx: float, alpha := 0.2) -> void:
+	ci.draw_colored_polygon(ellipse(c, rx, rx * 0.16 + 2.0, 20), Color(0.12, 0.06, 0.2, alpha))
+
+
 static func text_width(s: String, size: int, bold := true) -> float:
 	var f: Font = Game.font_bold if bold else Game.font
 	return f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x

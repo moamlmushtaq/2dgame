@@ -34,5 +34,13 @@ func _draw() -> void:
 	var o := Vector2(0, sin(_t * 2.0) * 4.0)
 	draw_circle(o, 20.0, Color(0.6, 0.95, 1.0, 0.18 + 0.08 * sin(_t * 3.0)), true, -1.0, true)
 	draw_colored_polygon(PackedVector2Array([o + Vector2(0, -14), o + Vector2(11, -2), o + Vector2(0, 14), o + Vector2(-11, -2)]), Color("#56d8f5"))
+	draw_colored_polygon(PackedVector2Array([o + Vector2(0, 14), o + Vector2(11, -2), o + Vector2(0, -2)]), Color("#2fb6dc"))
 	draw_colored_polygon(PackedVector2Array([o + Vector2(0, -14), o + Vector2(11, -2), o + Vector2(0, -2)]), Color("#c8f8ff"))
 	draw_colored_polygon(PackedVector2Array([o + Vector2(0, -14), o + Vector2(0, -2), o + Vector2(-11, -2)]), Color("#8eeaff"))
+	# A twinkle that sweeps across every couple of seconds.
+	var k := fposmod(_t * 0.6, 1.0)
+	if k < 0.25:
+		var a := sin(k / 0.25 * PI)
+		var sp := o + Vector2(-5, -7)
+		draw_line(sp + Vector2(-6, 0) * a, sp + Vector2(6, 0) * a, Color(1, 1, 1, a), 2.0, true)
+		draw_line(sp + Vector2(0, -6) * a, sp + Vector2(0, 6) * a, Color(1, 1, 1, a), 2.0, true)
