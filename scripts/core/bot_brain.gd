@@ -380,17 +380,34 @@ func _gun(v: Node, cannon: Cannon, delta: float) -> void:
 	if target.is_empty():
 		# Nothing to shoot: point the barrel at where birds come from and wait.
 		var rest := clampf(-0.5, cannon.min_angle, cannon.max_angle)
-		var d := angle_difference(cannon.angle, rest)
+		var d := rest - cannon.angle
 		if absf(d) > 0.05:
-			_want["down" if d > 0.0 else "up"] = true
+			_turn_cannon(cannon, d)
 		return
-	var diff := angle_difference(cannon.angle, target["angle"])
-	if diff > 0.03:
-		_want["down"] = true
-	elif diff < -0.03:
-		_want["up"] = true
+	# Both angles are inside the cannon's range, so plain subtraction never turns the
+	# barrel the short way through its blocked gap.
+	var diff: float = target["angle"] - cannon.angle
+	if absf(diff) > 0.03:
+		_turn_cannon(cannon, diff)
 	if absf(diff) < 0.07 and cannon._cooldown <= 0.0:
 		_tap("jump")
+
+
+## Presses the arrows that grow the cannon's angle when `by` > 0 (shrink it when < 0).
+func _turn_cannon(cannon: Cannon, by: float) -> void:
+	if not cannon.sweep_with_x:
+		_want["down" if by > 0.0 else "up"] = true
+		return
+	# The mast cannon's tip follows the arrows: press along the tip's direction of travel.
+	var tip := Vector2(-sin(cannon.angle), cos(cannon.angle)) * signf(by)
+	if tip.x > 0.35:
+		_want["right"] = true
+	elif tip.x < -0.35:
+		_want["left"] = true
+	if tip.y > 0.35:
+		_want["down"] = true
+	elif tip.y < -0.35:
+		_want["up"] = true
 
 
 ## The most urgent thing this cannon can hit: {"angle": float} or empty.
@@ -422,9 +439,9 @@ func _pick_target(v: Node, cannon: Cannon) -> Dictionary:
 		for i in 3:
 			var t := origin.distance_to(aim) / Cannon.BALL_SPEED
 			aim = pos + (o[2] as Vector2) * t + Vector2(0, -0.5 * Cannonball.GRAVITY * t * t)
-		var angle := (aim - origin).angle()
-		if angle >= cannon.min_angle - 0.02 and angle <= cannon.max_angle + 0.02:
-			return {"angle": clampf(angle, cannon.min_angle, cannon.max_angle)}
+		var angle := cannon.fit_angle((aim - origin).angle(), 0.02)
+		if not is_nan(angle):
+			return {"angle": angle}
 	return {}
 
 

@@ -66,12 +66,13 @@ func _ready() -> void:
 	_add_station(Helm.new(), Vector2(345, 420))
 	var bow := Cannon.new()
 	bow.min_angle = -1.45
-	bow.max_angle = 0.45
+	bow.max_angle = 0.8  # low enough for rocks passing under the bow
 	bow.angle = -0.25
 	_add_station(bow, Vector2(1085, Ship.DECK_Y))
 	var mast := Cannon.new()
-	mast.min_angle = -PI + 0.25
-	mast.max_angle = -0.25
+	# Dips below the horizon on both sides so birds diving at the deck can still be hit.
+	mast.min_angle = -PI - 0.75
+	mast.max_angle = 0.75
 	mast.angle = -PI * 0.5 + 0.3
 	mast.sweep_with_x = true
 	_add_station(mast, Vector2(690, 400))
