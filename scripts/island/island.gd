@@ -243,6 +243,8 @@ func show_banner(text: String) -> void:
 func win() -> void:
 	won = true
 	Game.map_pieces += 1
+	Game.voyage_number += 1
+	Game.checkpoint_run()
 	banner_time = 0.0
 	for p in players:
 		p.frozen = true
@@ -266,7 +268,6 @@ func _physics_process(delta: float) -> void:
 		if win_time > 1.8:
 			for p in players:
 				if p.input.pressed("interact"):
-					Game.voyage_number += 1
 					Game.goto(Game.VOYAGE_SCENE)
 					return
 

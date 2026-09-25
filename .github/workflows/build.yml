@@ -1,0 +1,68 @@
+name: Build game
+
+# On every push: check that every scene loads without script errors, then export
+# ready-to-play builds for Windows, Linux and the web. Download them from the
+# workflow run's "Artifacts" section on GitHub.
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot and export templates
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          wget -q "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q "Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          wget -q "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          dest="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          unzip -q -j "Godot_v${GODOT_VERSION}-stable_export_templates.tpz" \
+            templates/linux_release.x86_64 templates/windows_release_x86_64.exe \
+            templates/web_nothreads_release.zip templates/version.txt -d "$dest"
+          rm -f ./*.zip ./*.tpz
+
+      - name: Import project
+        run: godot --headless --import || true
+
+      - name: Check every scene loads without script errors
+        run: |
+          for scene in menu story voyage island; do
+            godot --headless "res://scenes/$scene.tscn" --quit-after 300 2>&1 | tee "log_$scene.txt"
+            if grep -qE "SCRIPT ERROR|Parse Error" "log_$scene.txt"; then
+              echo "::error::Script errors in $scene"
+              exit 1
+            fi
+          done
+
+      - name: Export builds
+        run: |
+          mkdir -p build/windows build/linux build/web
+          godot --headless --export-release "Windows" build/windows/CloudShip.exe
+          godot --headless --export-release "Linux" build/linux/CloudShip.x86_64
+          godot --headless --export-release "Web" build/web/index.html
+          ls -la build/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CloudShip-Windows
+          path: build/windows
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CloudShip-Linux
+          path: build/linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CloudShip-Web
+          path: build/web

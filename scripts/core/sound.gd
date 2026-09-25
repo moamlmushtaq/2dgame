@@ -21,12 +21,16 @@ var _composing := {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_make_bus("Music")
+	_make_bus("SFX")
 	for i in VOICES:
 		var p := AudioStreamPlayer.new()
+		p.bus = "SFX"
 		add_child(p)
 		_voices.append(p)
 	_music = AudioStreamPlayer.new()
 	_music.volume_db = MUSIC_DB
+	_music.bus = "Music"
 	add_child(_music)
 	_build_sfx()
 
@@ -44,6 +48,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			and (event as InputEventKey).physical_keycode == KEY_M:
 		muted = not muted
 		AudioServer.set_bus_mute(0, muted)
+
+
+## Volumes are 0..1 and come from the settings menu.
+func set_volumes(music: float, sfx: float) -> void:
+	_set_bus("Music", music)
+	_set_bus("SFX", sfx)
+
+
+func _make_bus(bus: String) -> void:
+	if AudioServer.get_bus_index(bus) != -1:
+		return
+	AudioServer.add_bus()
+	var i := AudioServer.bus_count - 1
+	AudioServer.set_bus_name(i, bus)
+	AudioServer.set_bus_send(i, "Master")
+
+
+func _set_bus(bus: String, volume: float) -> void:
+	var i := AudioServer.get_bus_index(bus)
+	AudioServer.set_bus_volume_db(i, linear_to_db(maxf(volume, 0.001)))
+	AudioServer.set_bus_mute(i, volume <= 0.0)
 
 
 func play(sound: String, volume_db := 0.0, pitch := 1.0, jitter := 0.06) -> void:

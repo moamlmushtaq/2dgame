@@ -1,6 +1,7 @@
 class_name Cannonball
 extends Node2D
-## A cannonball that pops storm birds and chips floating rocks.
+## A cannonball that pops storm birds, chips floating rocks, knocks pirate bombs out of
+## the sky and damages the pirate flagship.
 
 const GRAVITY := 260.0
 
@@ -23,6 +24,18 @@ func _physics_process(delta: float) -> void:
 		var r := node as Rock
 		if r.global_position.distance_to(global_position) < r.radius + 6.0:
 			r.damage(1)
+			_pop()
+			return
+	for node in get_tree().get_nodes_in_group("bombs"):
+		var bomb := node as Bomb
+		if bomb.global_position.distance_to(global_position) < 22.0:
+			bomb.shoot_down()
+			_pop()
+			return
+	for node in get_tree().get_nodes_in_group("boss"):
+		var pirate := node as PirateShip
+		if pirate.hit_test(global_position):
+			pirate.damage(1)
 			_pop()
 			return
 	if _life <= 0.0 or position.y > 900.0:

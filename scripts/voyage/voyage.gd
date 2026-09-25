@@ -3,6 +3,7 @@ extends Node2D
 ##
 ## Jobs on board: shovel coal into the furnace, steer with the helm to dodge rocks,
 ## shoot storm birds with the two cannons, and hammer holes shut.
+## Once every map piece is found, the last voyage is a battle with the pirate flagship.
 
 enum State { SAILING, ARRIVED, WRECKED }
 
@@ -26,6 +27,8 @@ var ship: Ship
 var hazards: Node2D
 var effects: Node2D
 var camera: Camera2D
+## The pirate flagship on the final voyage, otherwise null.
+var boss: PirateShip = null
 
 var _diff := 0.0
 var _rock_timer := 12.0
@@ -39,6 +42,7 @@ func _ready() -> void:
 	Game.ensure_players()
 	_diff = Game.difficulty()
 	Sound.play_music("voyage")
+	var final := Game.is_final_voyage()
 
 	var back := CanvasLayer.new()
 	back.layer = -10
@@ -61,7 +65,7 @@ func _ready() -> void:
 	_add_station(CoalPile.new(), Vector2(890, Ship.DECK_Y))
 	_add_station(Helm.new(), Vector2(345, 420))
 	var bow := Cannon.new()
-	bow.min_angle = -1.0
+	bow.min_angle = -1.45
 	bow.max_angle = 0.45
 	bow.angle = -0.25
 	_add_station(bow, Vector2(1085, Ship.DECK_Y))
@@ -83,6 +87,11 @@ func _ready() -> void:
 		add_child(p)
 		players.append(p)
 
+	if final:
+		boss = PirateShip.new()
+		boss.voyage = self
+		hazards.add_child(boss)
+
 	var ui := CanvasLayer.new()
 	ui.layer = 10
 	add_child(ui)
@@ -90,7 +99,12 @@ func _ready() -> void:
 	hud.voyage = self
 	ui.add_child(hud)
 
-	if Game.voyage_number == 1:
+	if final:
+		_tips = [
+			[1.5, "سفينة القراصنة! أسقطوها بالمدافع"],
+			[9.0, "القنابل تسقط داخل الدائرة الحمراء، والمدافع تُسقطها في الجو"],
+		]
+	elif Game.voyage_number == 1:
 		_tips = [
 			[1.5, "أطعموا المحرك بالفحم كي تبقى السفينة مسرعة!"],
 			[10.0, "الدفة ترفع السفينة وتخفضها لتفادي الصخور"],
@@ -119,6 +133,10 @@ func has_arrived() -> bool:
 	return state == State.ARRIVED
 
 
+func difficulty() -> float:
+	return _diff
+
+
 func speed_factor() -> float:
 	if state == State.WRECKED:
 		return 0.0
@@ -142,20 +160,22 @@ func _physics_process(delta: float) -> void:
 
 func _sail(delta: float) -> void:
 	fuel = maxf(fuel - (2.6 + _diff * 1.4) * delta, 0.0)
-	distance = minf(distance + delta / VOYAGE_TIME * speed_factor(), 1.0)
-	hp -= holes.size() * 1.1 * delta
+	if boss == null:
+		distance = minf(distance + delta / VOYAGE_TIME * speed_factor(), 1.0)
+	hp -= holes.size() * 1.1 * delta * Game.damage_scale()
 	while not _tips.is_empty() and elapsed >= _tips[0][0]:
 		show_banner(_tips.pop_front()[1])
 
-	_rock_timer -= delta * speed_factor()
-	if _rock_timer <= 0.0:
-		_rock_timer = randf_range(9.0, 13.0) / (1.0 + _diff)
-		_spawn_rock()
-	_bird_timer -= delta
-	if _bird_timer <= 0.0:
-		_bird_timer = randf_range(5.0, 8.0) / (1.0 + _diff * 1.2)
-		for i in 1 + int(Game.player_count() / 3.0):
-			_spawn_bird(i)
+	if boss == null:
+		_rock_timer -= delta * speed_factor()
+		if _rock_timer <= 0.0:
+			_rock_timer = randf_range(9.0, 13.0) / (1.0 + _diff)
+			_spawn_rock()
+		_bird_timer -= delta
+		if _bird_timer <= 0.0:
+			_bird_timer = randf_range(5.0, 8.0) / (1.0 + _diff * 1.2)
+			for i in 1 + int(Game.player_count() / 3.0):
+				spawn_bird(i)
 
 	if hp <= 0.0:
 		_wreck()
@@ -172,7 +192,7 @@ func _spawn_rock() -> void:
 	hazards.add_child(r)
 
 
-func _spawn_bird(i: int) -> void:
+func spawn_bird(i: int) -> void:
 	var b := Bird.new()
 	b.voyage = self
 	var from_left := randf() < 0.25
@@ -183,7 +203,7 @@ func _spawn_bird(i: int) -> void:
 
 
 func rock_hit(rock: Rock) -> void:
-	hp -= 12.0
+	hp -= 12.0 * Game.damage_scale()
 	add_shake(14.0)
 	Sound.play("crash")
 	Fx.burst(effects, rock.global_position, Color("#a89bb0"), 30, 320.0, 0.7)
@@ -202,11 +222,39 @@ func rock_destroyed(rock: Rock) -> void:
 
 
 func bird_hit(bird: Bird) -> void:
-	hp -= 4.0
+	hp -= 4.0 * Game.damage_scale()
 	add_shake(5.0)
 	add_hole(bird.target.x)
 	Fx.burst(effects, bird.global_position, Color("#8e7fc4"), 16, 180.0)
 	bird.queue_free()
+
+
+func spawn_bomb(from: Vector2, target: Vector2) -> void:
+	var b := Bomb.new()
+	b.voyage = self
+	b.start = from
+	b.target = target
+	effects.add_child(b)
+
+
+func bomb_landed(bomb: Bomb) -> void:
+	hp -= 6.0 * Game.damage_scale()
+	add_shake(8.0)
+	Sound.play("crash", -4.0, 1.2)
+	Fx.burst(effects, bomb.target, Color("#ffb347"), 24, 260.0, 0.6)
+	add_hole(bomb.target.x)
+	bomb.queue_free()
+
+
+func boss_defeated() -> void:
+	state = State.ARRIVED
+	Sound.play("win")
+	add_shake(16.0)
+	for b in get_tree().get_nodes_in_group("birds"):
+		b.flee()
+	for b in get_tree().get_nodes_in_group("bombs"):
+		b.shoot_down()
+	show_banner("هزمتم قراصنة السماء!")
 
 
 func add_hole(x := -1.0) -> void:
@@ -257,6 +305,8 @@ func _wreck() -> void:
 		p.frozen = true
 	for b in get_tree().get_nodes_in_group("birds"):
 		b.flee()
+	for b in get_tree().get_nodes_in_group("bombs"):
+		b.queue_free()
 
 
 func _arrive() -> void:
@@ -273,7 +323,10 @@ func _arrive() -> void:
 func _ending(delta: float) -> void:
 	end_time += delta
 	if state == State.ARRIVED:
-		if end_time > 3.5:
+		if boss != null and end_time > 4.5:
+			Game.story_kind = "ending"
+			Game.goto(Game.STORY_SCENE)
+		elif boss == null and end_time > 3.5:
 			Game.goto(Game.ISLAND_SCENE)
 	elif end_time > 1.5:
 		for p in players:

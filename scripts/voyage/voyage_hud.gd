@@ -20,16 +20,27 @@ func _draw() -> void:
 	var s := size
 	var shadow := Color(0.15, 0.1, 0.35, 0.45)
 
-	# Distance to the island.
-	var track := Rect2(s.x * 0.5 - 250.0, 24, 500, 14)
-	Paint.bar(self, track, voyage.distance, Color.WHITE, Color(1, 1, 1, 0.3))
-	var isle := Vector2(track.end.x + 26.0, track.get_center().y)
-	draw_colored_polygon(PackedVector2Array([isle + Vector2(-16, 0), isle + Vector2(16, 0), isle + Vector2(0, 14)]), Color("#8a5a48"))
-	draw_circle(isle + Vector2(0, -3), 9.0, Color("#69c96b"), true, -1.0, true)
-	var sx: float = track.position.x + track.size.x * voyage.distance
-	draw_colored_polygon(Paint.ellipse(Vector2(sx, track.get_center().y - 12.0), 12.0, 7.0, 20), Ship.STRIPE_B)
-	draw_style_box(Paint.box(Ship.WOOD, 3), Rect2(sx - 9.0, track.get_center().y - 3.0, 18, 7))
-	Paint.text(self, Vector2(s.x * 0.5, 56), "المسافة إلى الجزيرة", 15, Color.WHITE, true, 4, shadow)
+	if voyage.boss != null:
+		# Final battle: the pirate flagship's health instead of the distance.
+		var boss_bar := Rect2(s.x * 0.5 - 250.0, 24, 500, 16)
+		Paint.bar(self, boss_bar, float(voyage.boss.hp) / voyage.boss.max_hp, Color("#a987ff"), Color(1, 1, 1, 0.3))
+		Paint.text(self, Vector2(s.x * 0.5, 58), "سفينة القراصنة", 16, Color.WHITE, true, 4, shadow)
+	else:
+		var track := Rect2(s.x * 0.5 - 250.0, 24, 500, 14)
+		Paint.bar(self, track, voyage.distance, Color.WHITE, Color(1, 1, 1, 0.3))
+		var isle := Vector2(track.end.x + 26.0, track.get_center().y)
+		draw_colored_polygon(PackedVector2Array([isle + Vector2(-16, 0), isle + Vector2(16, 0), isle + Vector2(0, 14)]), Color("#8a5a48"))
+		draw_circle(isle + Vector2(0, -3), 9.0, Color("#69c96b"), true, -1.0, true)
+		var sx: float = track.position.x + track.size.x * voyage.distance
+		draw_colored_polygon(Paint.ellipse(Vector2(sx, track.get_center().y - 12.0), 12.0, 7.0, 20), Ship.STRIPE_B)
+		draw_style_box(Paint.box(Ship.WOOD, 3), Rect2(sx - 9.0, track.get_center().y - 3.0, 18, 7))
+		Paint.text(self, Vector2(s.x * 0.5, 56), "المسافة إلى الجزيرة", 15, Color.WHITE, true, 4, shadow)
+
+	# Voyage number and map pieces, bottom-right.
+	var label := "المعركة الأخيرة" if voyage.boss != null else "الرحلة %d" % Game.voyage_number
+	Paint.text(self, Vector2(s.x - 90.0, s.y - 52.0), label, 15, Color.WHITE, true, 4, shadow)
+	Paint.map_pieces(self, Vector2(s.x - 90.0, s.y - 26.0), Game.map_pieces, Game.MAP_TOTAL, 18.0)
+	Paint.text(self, Vector2(70, s.y - 22.0), "Esc: استراحة", 13, Color(1, 1, 1, 0.75), false, 3, shadow)
 
 	# Hull (right) and fuel (left).
 	_meter(Rect2(s.x - 250.0, 24, 220, 16), voyage.hp / 100.0, Color("#ff6f7d"), "الهيكل")
@@ -54,7 +65,8 @@ func _draw() -> void:
 			Paint.text(self, s * 0.5 + Vector2(0, 40), "اضغطوا زر التفاعل للمحاولة من جديد", 24, Color(1, 1, 1, blink), true, 4, shadow)
 	elif voyage.has_arrived():
 		var pop := minf(voyage.end_time * 2.0, 1.0)
-		Paint.text(self, s * 0.5 + Vector2(0, -60), "وصلنا إلى الجزيرة!", int(30 + 34 * pop), Color("#fff4c2"), true, 8, shadow)
+		var done := "هزمتم قراصنة السماء!" if voyage.boss != null else "وصلنا إلى الجزيرة!"
+		Paint.text(self, s * 0.5 + Vector2(0, -60), done, int(30 + 34 * pop), Color("#fff4c2"), true, 8, shadow)
 
 
 func _meter(r: Rect2, value: float, col: Color, label: String) -> void:

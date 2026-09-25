@@ -55,8 +55,17 @@ func _draw() -> void:
 	paint(self, _t, _prop)
 
 
-## Paints the whole ship in its own coordinates. The menu reuses it at a smaller scale.
-static func paint(ci: CanvasItem, t: float, prop: float) -> void:
+## Paints the whole ship in its own coordinates. The menu reuses it at a smaller scale,
+## and the pirate flagship reuses it with a darker palette (`pal` overrides the colours
+## and the painted name).
+static func paint(ci: CanvasItem, t: float, prop: float, pal := {}) -> void:
+	var wood: Color = pal.get("wood", WOOD)
+	var wood_dark: Color = pal.get("wood_dark", WOOD_DARK)
+	var wood_light: Color = pal.get("wood_light", WOOD_LIGHT)
+	var gold: Color = pal.get("gold", GOLD)
+	var stripe_a: Color = pal.get("stripe_a", STRIPE_A)
+	var stripe_b: Color = pal.get("stripe_b", STRIPE_B)
+	var title: String = pal.get("name", "سفينة الغيوم")
 	var rope := Color("#6b4a2f")
 	for pair in [
 		[Vector2(300, 250), Vector2(200, 420)], [Vector2(470, 285), Vector2(420, 420)],
@@ -66,65 +75,65 @@ static func paint(ci: CanvasItem, t: float, prop: float) -> void:
 
 	# Tail fin, then the balloon: nested ellipses of the same height make the stripes.
 	ci.draw_colored_polygon(PackedVector2Array([Vector2(260, 130), Vector2(165, 70), Vector2(190, 170),
-		Vector2(165, 270), Vector2(260, 210)]), STRIPE_B.darkened(0.1))
+		Vector2(165, 270), Vector2(260, 210)]), stripe_b.darkened(0.1))
 	var bc := Vector2(655, 170)
 	var n := 7
 	for i in n:
 		var k := 1.0 - float(i) / n
-		ci.draw_colored_polygon(Paint.ellipse(bc, 440.0 * k, 120.0), STRIPE_A if i % 2 == 0 else STRIPE_B)
+		ci.draw_colored_polygon(Paint.ellipse(bc, 440.0 * k, 120.0), stripe_a if i % 2 == 0 else stripe_b)
 	var outline := Paint.ellipse(bc, 440.0, 120.0, 64)
 	outline.append(outline[0])
-	ci.draw_polyline(outline, STRIPE_B.darkened(0.25), 3.0, true)
+	ci.draw_polyline(outline, stripe_b.darkened(0.25), 3.0, true)
 	ci.draw_colored_polygon(Paint.ellipse(bc + Vector2(-110, -58), 210.0, 30.0), Color(1, 1, 1, 0.28))
 
 	var wave := sin(t * 5.0) * 5.0
-	ci.draw_line(Vector2(655, 52), Vector2(655, 14), WOOD_DARK, 3.0, true)
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(656, 14), Vector2(696, 22 + wave), Vector2(656, 32)]), GOLD)
+	ci.draw_line(Vector2(655, 52), Vector2(655, 14), wood_dark, 3.0, true)
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(656, 14), Vector2(696, 22 + wave), Vector2(656, 32)]), gold)
 
 	# Mast and crow's nest.
-	ci.draw_rect(Rect2(647, 285, 16, 235), WOOD_DARK)
-	ci.draw_line(Vector2(572, 414), Vector2(647, 470), WOOD_DARK, 5.0, true)
-	ci.draw_line(Vector2(738, 414), Vector2(663, 470), WOOD_DARK, 5.0, true)
-	ci.draw_rect(Rect2(565, 400, 180, 14), WOOD_LIGHT)
-	ci.draw_rect(Rect2(565, 410, 180, 4), WOOD_DARK)
+	ci.draw_rect(Rect2(647, 285, 16, 235), wood_dark)
+	ci.draw_line(Vector2(572, 414), Vector2(647, 470), wood_dark, 5.0, true)
+	ci.draw_line(Vector2(738, 414), Vector2(663, 470), wood_dark, 5.0, true)
+	ci.draw_rect(Rect2(565, 400, 180, 14), wood_light)
+	ci.draw_rect(Rect2(565, 410, 180, 4), wood_dark)
 
 	# Quarterdeck and its supports.
-	ci.draw_rect(Rect2(185, 434, 10, 80), WOOD_DARK)
-	ci.draw_rect(Rect2(415, 434, 10, 80), WOOD_DARK)
-	ci.draw_rect(Rect2(175, 420, 255, 14), WOOD_LIGHT)
-	ci.draw_rect(Rect2(175, 430, 255, 4), WOOD_DARK)
+	ci.draw_rect(Rect2(185, 434, 10, 80), wood_dark)
+	ci.draw_rect(Rect2(415, 434, 10, 80), wood_dark)
+	ci.draw_rect(Rect2(175, 420, 255, 14), wood_light)
+	ci.draw_rect(Rect2(175, 430, 255, 4), wood_dark)
 
 	# Railing.
-	ci.draw_line(Vector2(150, 478), Vector2(1150, 478), WOOD_DARK, 5.0, true)
+	ci.draw_line(Vector2(150, 478), Vector2(1150, 478), wood_dark, 5.0, true)
 	for x in range(160, 1151, 50):
-		ci.draw_line(Vector2(x, 478), Vector2(x, 512), WOOD_DARK, 4.0, true)
+		ci.draw_line(Vector2(x, 478), Vector2(x, 512), wood_dark, 4.0, true)
 
 	# Hull.
 	ci.draw_colored_polygon(PackedVector2Array([Vector2(128, 512), Vector2(1150, 512), Vector2(1228, 468),
-		Vector2(1200, 560), Vector2(1095, 650), Vector2(310, 662), Vector2(170, 618), Vector2(118, 548)]), WOOD)
+		Vector2(1200, 560), Vector2(1095, 650), Vector2(310, 662), Vector2(170, 618), Vector2(118, 548)]), wood)
 	ci.draw_colored_polygon(PackedVector2Array([Vector2(142, 580), Vector2(1176, 580), Vector2(1095, 650),
-		Vector2(310, 662), Vector2(170, 618)]), WOOD_DARK)
-	ci.draw_line(Vector2(122, 545), Vector2(1203, 545), Color(WOOD_DARK, 0.5), 2.0)
-	ci.draw_line(Vector2(172, 615), Vector2(1134, 615), WOOD_DARK.darkened(0.2), 2.0)
-	ci.draw_rect(Rect2(128, 506, 1022, 16), WOOD_LIGHT)
-	ci.draw_polyline(PackedVector2Array([Vector2(128, 512), Vector2(1150, 512), Vector2(1228, 468)]), GOLD, 6.0, true)
-	ci.draw_line(Vector2(142, 580), Vector2(1176, 580), Color(GOLD, 0.6), 3.0)
+		Vector2(310, 662), Vector2(170, 618)]), wood_dark)
+	ci.draw_line(Vector2(122, 545), Vector2(1203, 545), Color(wood_dark, 0.5), 2.0)
+	ci.draw_line(Vector2(172, 615), Vector2(1134, 615), wood_dark.darkened(0.2), 2.0)
+	ci.draw_rect(Rect2(128, 506, 1022, 16), wood_light)
+	ci.draw_polyline(PackedVector2Array([Vector2(128, 512), Vector2(1150, 512), Vector2(1228, 468)]), gold, 6.0, true)
+	ci.draw_line(Vector2(142, 580), Vector2(1176, 580), Color(gold, 0.6), 3.0)
 	for x in range(330, 1100, 140):
-		ci.draw_circle(Vector2(x, 548), 12.0, GOLD, true, -1.0, true)
+		ci.draw_circle(Vector2(x, 548), 12.0, gold, true, -1.0, true)
 		ci.draw_circle(Vector2(x, 548), 8.5, Color("#a6e4ff"), true, -1.0, true)
 		ci.draw_circle(Vector2(x - 3, 545), 2.5, Color(1, 1, 1, 0.9), true, -1.0, true)
-	Paint.text(ci, Vector2(700, 622), "سفينة الغيوم", 22, GOLD)
-	ci.draw_circle(Vector2(1228, 468), 7.0, GOLD, true, -1.0, true)
+	Paint.text(ci, Vector2(700, 622), title, 22, gold)
+	ci.draw_circle(Vector2(1228, 468), 7.0, gold, true, -1.0, true)
 
 	# Cargo crate.
-	ci.draw_rect(Rect2(470, 465, 60, 55), WOOD_LIGHT)
-	ci.draw_rect(Rect2(470, 465, 60, 55), WOOD_DARK, false, 3.0)
-	ci.draw_line(Vector2(472, 467), Vector2(528, 518), WOOD_DARK, 3.0)
-	ci.draw_line(Vector2(528, 467), Vector2(472, 518), WOOD_DARK, 3.0)
+	ci.draw_rect(Rect2(470, 465, 60, 55), wood_light)
+	ci.draw_rect(Rect2(470, 465, 60, 55), wood_dark, false, 3.0)
+	ci.draw_line(Vector2(472, 467), Vector2(528, 518), wood_dark, 3.0)
+	ci.draw_line(Vector2(528, 467), Vector2(472, 518), wood_dark, 3.0)
 
 	# Propeller: the blades foreshorten as they spin.
 	ci.draw_line(Vector2(118, 560), Vector2(94, 560), Color("#6f7389"), 6.0)
 	for k in 2:
 		var l := 46.0 * cos(prop + k * PI * 0.5)
 		ci.draw_line(Vector2(90, 560 - l), Vector2(90, 560 + l), Color("#ece4d4"), 9.0, true)
-	ci.draw_circle(Vector2(90, 560), 7.0, GOLD, true, -1.0, true)
+	ci.draw_circle(Vector2(90, 560), 7.0, gold, true, -1.0, true)

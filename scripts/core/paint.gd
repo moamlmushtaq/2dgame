@@ -65,3 +65,17 @@ static func bar(ci: CanvasItem, rect: Rect2, value: float, fill: Color, back := 
 	var w := rect.size.x * clampf(value, 0.0, 1.0)
 	if w >= rect.size.y * 0.6:
 		ci.draw_style_box(box(fill, r), Rect2(rect.position, Vector2(w, rect.size.y)))
+
+
+## A row of map-piece icons centred on `center`; the first `count` are found.
+static func map_pieces(ci: CanvasItem, center: Vector2, count: int, total: int, size := 22.0) -> void:
+	var gap := 6.0
+	var x0 := center.x - (total * size + (total - 1) * gap) * 0.5
+	for i in total:
+		var r := Rect2(x0 + i * (size + gap), center.y - size * 0.5, size, size)
+		if i < count:
+			ci.draw_style_box(box(Color("#f6e3b4"), 4, Color("#c9a26a"), 2), r)
+			ci.draw_line(r.position + Vector2(5, 6), r.end - Vector2(6, 7), Color("#e0524f"), 2.0, true)
+			ci.draw_line(r.position + Vector2(size - 6.0, 6), r.position + Vector2(5, size - 7.0), Color("#e0524f"), 2.0, true)
+		else:
+			ci.draw_style_box(box(Color(1, 1, 1, 0.18), 4, Color(1, 1, 1, 0.55), 2), r)
