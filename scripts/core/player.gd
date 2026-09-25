@@ -54,6 +54,9 @@ var _head: AnimatableBody2D
 
 func setup(info: Dictionary) -> void:
 	input = info["input"]
+	if input.is_bot():
+		input.brain.player = self
+
 	color = info["color"]
 	player_name = info["name"]
 	slot = info["slot"]
@@ -236,7 +239,7 @@ func _draw() -> void:
 		return
 	var moving := absf(velocity.x) > 30.0 and is_on_floor()
 	var airborne := station == null and not is_on_floor()
-	paint_sailor(self, Vector2.ZERO, color, facing, _squash, _t, moving, carrying, airborne, repair_time > 0.0)
+	paint_sailor(self, Vector2.ZERO, color, facing, _squash, _t, moving, carrying, airborne, repair_time > 0.0, input.is_bot())
 
 	var top := -HEIGHT * _squash.y - 16.0 - (24.0 if carrying != "" else 0.0)
 	draw_colored_polygon(PackedVector2Array([Vector2(-6, top - 7), Vector2(6, top - 7), Vector2(0, top)]), color)
@@ -245,7 +248,7 @@ func _draw() -> void:
 		label = "خروج"
 	elif target != null:
 		label = target.hint(self)
-	if label != "":
+	if label != "" and not input.is_bot():
 		_draw_hint(Vector2(0, top - 24), label)
 
 
@@ -265,7 +268,7 @@ func _draw_hint(pos: Vector2, label: String) -> void:
 
 ## Draws a sailor with its feet at `o`. Shared with the menu so both look the same.
 static func paint_sailor(ci: CanvasItem, o: Vector2, col: Color, facing: int, sq: Vector2, t: float,
-		moving := false, carrying := "", airborne := false, hammering := false) -> void:
+		moving := false, carrying := "", airborne := false, hammering := false, robot := false) -> void:
 	var w := WIDTH * sq.x
 	var h := HEIGHT * sq.y
 	var dark := col.darkened(0.4)
@@ -308,7 +311,13 @@ static func paint_sailor(ci: CanvasItem, o: Vector2, col: Color, facing: int, sq
 	var hy := o.y - h
 	ci.draw_style_box(Paint.box(Color.WHITE, 4), Rect2(o.x - w * 0.42, hy - 5.0, w * 0.84, 8.0))
 	ci.draw_rect(Rect2(o.x - w * 0.42, hy + 1.0, w * 0.84, 2.0), col.darkened(0.2))
-	ci.draw_circle(Vector2(o.x, hy - 7.0), 3.5, col.lightened(0.25), true, -1.0, true)
+	if robot:
+		# Computer-controlled helpers wear an antenna with a blinking light instead of a pompom.
+		ci.draw_line(Vector2(o.x, hy - 4.0), Vector2(o.x, hy - 16.0), Color("#6f7389"), 2.0, true)
+		var blink_light := 0.5 + 0.5 * sin(t * 6.0)
+		ci.draw_circle(Vector2(o.x, hy - 18.0), 4.0, Color("#7dffa8").lerp(Color.WHITE, blink_light * 0.5), true, -1.0, true)
+	else:
+		ci.draw_circle(Vector2(o.x, hy - 7.0), 3.5, col.lightened(0.25), true, -1.0, true)
 
 	if hammering:
 		var a := 1.1 - absf(sin(t * 14.0)) * 1.4

@@ -25,8 +25,8 @@ var _xf := Transform2D.IDENTITY
 
 func _ready() -> void:
 	add_to_group("boss")
-	var n := Game.player_count()
-	max_hp = int((20 + 5 * n) * [0.8, 1.0, 1.25][Game.settings["difficulty"]])
+	var n := Game.crew_strength()
+	max_hp = int((34.0 + 11.0 * n) * [0.8, 1.0, 1.25][Game.settings["difficulty"]])
 	hp = max_hp
 	var s := Vector2(-SCALE, SCALE)  # mirrored so it faces our ship
 	_xf = Transform2D(0.0, s, 0.0, -s * SHIP_CENTER)
@@ -50,17 +50,17 @@ func _physics_process(delta: float) -> void:
 	# Hover in the top-right, half-compensating for the helm so it stays on screen.
 	position = Vector2(1190.0 + sin(_t * 0.4) * 40.0, 120.0 + sin(_t * 0.7) * 50.0 - voyage.altitude * 0.5)
 
-	var rage := 1.4 if angry else 1.0
+	var rage := 1.25 if angry else 1.0
 	_bomb_timer -= delta * rage * (1.0 + voyage.difficulty() * 0.4)
 	if _bomb_timer <= 0.0:
 		_bomb_timer = randf_range(2.6, 3.6)
-		for i in 2 if Game.player_count() >= 4 else 1:
+		for i in 2 if Game.crew_strength() >= 4.0 else 1:
 			voyage.spawn_bomb(muzzle(), Vector2(randf_range(220.0, 1080.0), Ship.DECK_Y))
 		Sound.play("cannon", -6.0, 0.8)
 	_bird_timer -= delta * rage
 	if _bird_timer <= 0.0:
 		_bird_timer = randf_range(9.0, 12.0)
-		for i in 1 + int(Game.player_count() / 3.0):
+		for i in 1 + int(Game.crew_strength() / 3.0):
 			voyage.spawn_bird(i)
 	queue_redraw()
 

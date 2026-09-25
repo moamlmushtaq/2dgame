@@ -162,7 +162,7 @@ func _sail(delta: float) -> void:
 	fuel = maxf(fuel - (2.6 + _diff * 1.4) * delta, 0.0)
 	if boss == null:
 		distance = minf(distance + delta / VOYAGE_TIME * speed_factor(), 1.0)
-	hp -= holes.size() * 1.1 * delta * Game.damage_scale()
+	hp -= holes.size() * 0.8 * delta * Game.damage_scale()
 	while not _tips.is_empty() and elapsed >= _tips[0][0]:
 		show_banner(_tips.pop_front()[1])
 
@@ -174,7 +174,7 @@ func _sail(delta: float) -> void:
 		_bird_timer -= delta
 		if _bird_timer <= 0.0:
 			_bird_timer = randf_range(5.0, 8.0) / (1.0 + _diff * 1.2)
-			for i in 1 + int(Game.player_count() / 3.0):
+			for i in 1 + int(Game.crew_strength() / 3.0):
 				spawn_bird(i)
 
 	if hp <= 0.0:
@@ -222,7 +222,7 @@ func rock_destroyed(rock: Rock) -> void:
 
 
 func bird_hit(bird: Bird) -> void:
-	hp -= 4.0 * Game.damage_scale()
+	hp -= 3.0 * Game.damage_scale()
 	add_shake(5.0)
 	add_hole(bird.target.x)
 	Fx.burst(effects, bird.global_position, Color("#8e7fc4"), 16, 180.0)
@@ -238,7 +238,7 @@ func spawn_bomb(from: Vector2, target: Vector2) -> void:
 
 
 func bomb_landed(bomb: Bomb) -> void:
-	hp -= 6.0 * Game.damage_scale()
+	hp -= 5.0 * Game.damage_scale()
 	add_shake(8.0)
 	Sound.play("crash", -4.0, 1.2)
 	Fx.burst(effects, bomb.target, Color("#ffb347"), 24, 260.0, 0.6)
@@ -262,9 +262,12 @@ func add_hole(x := -1.0) -> void:
 		return
 	if x < 0.0:
 		x = randf_range(220.0, 1080.0)
+	x = clampf(x, 200.0, 1100.0)
+	if x > 430.0 and x < 570.0:
+		x = 430.0 if x < 500.0 else 570.0  # never under the cargo crate, where nobody can reach
 	var h := Hole.new()
 	h.voyage = self
-	h.position = Vector2(clampf(x, 200.0, 1100.0), Ship.DECK_Y)
+	h.position = Vector2(x, Ship.DECK_Y)
 	add_child(h)
 	holes.append(h)
 	if _first_hole:

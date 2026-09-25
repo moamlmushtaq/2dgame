@@ -23,7 +23,7 @@ func _draw() -> void:
 	var gem := Vector2(s.x - 40.0, 34)
 	draw_colored_polygon(PackedVector2Array([gem + Vector2(0, -13), gem + Vector2(10, -2), gem + Vector2(0, 13), gem + Vector2(-10, -2)]), Color("#56d8f5"))
 	Paint.text(self, gem + Vector2(-70, 0), "البلورات %d/%d" % [island.gems_found, island.gems_total], 18, Color.WHITE, true, 4, shadow)
-	Paint.text(self, Vector2(150, 30), "خريطة السماء", 16, Color.WHITE, true, 4, shadow)
+	Paint.text(self, Vector2(175, 30), "خريطة السماء", 16, Color.WHITE, true, 4, shadow)
 	Paint.map_pieces(self, Vector2(60, 32), Game.map_pieces, Game.MAP_TOTAL, 18.0)
 	Paint.text(self, Vector2(70, s.y - 22.0), "Esc: استراحة", 13, Color(1, 1, 1, 0.75), false, 3, shadow)
 

@@ -52,6 +52,8 @@ func _physics_process(delta: float) -> void:
 	_page_t += delta
 	for p in Game.players:
 		var input: PlayerInput = p["input"]
+		if input.is_bot():
+			continue
 		input.poll()
 		if _page_t > 0.6 and (input.pressed("jump") or input.pressed("interact")):
 			_next()
@@ -146,7 +148,8 @@ func _draw_crew(center: Vector2, name_color := Color.WHITE) -> void:
 		var x := center.x + (i - (n - 1) * 0.5) * 90.0
 		var hop := absf(sin(_t * 3.0 + i)) * 6.0
 		draw_set_transform(Vector2(x, center.y), 0.0, Vector2(1.5, 1.5))
-		Player.paint_sailor(self, Vector2(0, -hop), info["color"], 1 if i % 2 == 0 else -1, Vector2.ONE, _t + i)
+		Player.paint_sailor(self, Vector2(0, -hop), info["color"], 1 if i % 2 == 0 else -1, Vector2.ONE, _t + i,
+			false, "", false, false, (info["input"] as PlayerInput).is_bot())
 		draw_set_transform(Vector2.ZERO)
 		Paint.text(self, Vector2(x, center.y + 20.0), info["name"], 18, name_color, true, 4 if name_color == Color.WHITE else 0, Color(0.2, 0.15, 0.4, 0.5))
 

@@ -1,9 +1,10 @@
 class_name PlayerInput
 extends RefCounted
-## Reads one player's controls: half of the keyboard, or one gamepad.
+## Reads one player's controls: half of the keyboard, one gamepad, or a BotBrain that
+## presses virtual buttons for a computer-controlled sailor.
 ## Keys are read by physical position, so any keyboard layout (Arabic too) works.
 
-enum Kind { KEYBOARD, GAMEPAD }
+enum Kind { KEYBOARD, GAMEPAD, BOT }
 
 const ACTIONS := ["left", "right", "up", "down", "jump", "interact"]
 const KEYBOARD_SCHEMES := [
@@ -23,6 +24,7 @@ const STICK_DEADZONE := 0.3
 
 var kind := Kind.KEYBOARD
 var device := 0
+var brain: BotBrain
 
 var _now := {}
 var _prev := {}
@@ -42,13 +44,30 @@ static func gamepad(id: int) -> PlayerInput:
 	return i
 
 
+static func bot() -> PlayerInput:
+	var i := PlayerInput.new()
+	i.kind = Kind.BOT
+	i.device = -1
+	i.brain = BotBrain.new()
+	return i
+
+
+func is_bot() -> bool:
+	return kind == Kind.BOT
+
+
 func same_as(other: PlayerInput) -> bool:
+	if kind == Kind.BOT:
+		return other == self
 	return other != null and other.kind == kind and other.device == device
 
 
 ## Call exactly once per physics frame, before reading pressed()/held().
 func poll() -> void:
 	_prev = _now
+	if kind == Kind.BOT:
+		_now = brain.decide()
+		return
 	_now = {}
 	for a in ACTIONS:
 		_now[a] = _raw(a)
@@ -81,6 +100,8 @@ func axis_y() -> float:
 func device_name() -> String:
 	if kind == Kind.KEYBOARD:
 		return KEYBOARD_SCHEMES[device]["name"]
+	if kind == Kind.BOT:
+		return "مساعد آلي"
 	return "يد تحكم %d" % (device + 1)
 
 

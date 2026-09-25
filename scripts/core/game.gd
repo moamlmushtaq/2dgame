@@ -25,7 +25,7 @@ var gems := 0
 ## "intro" or "ending": which story the story scene tells.
 var story_kind := "intro"
 
-var settings := {"music": 7, "sfx": 8, "fullscreen": false, "difficulty": 1}
+var settings := {"music": 7, "sfx": 8, "fullscreen": false, "difficulty": 1, "bots": 2}
 var stats := {"runs": 0, "best_gems": 0}
 ## The run in progress, saved after every island: {voyage, pieces, gems}.
 var saved_run := {}
@@ -122,6 +122,8 @@ func _process(_delta: float) -> void:
 	var list := _pause_settings if _pause_page == "settings" else _pause_main
 	for p in players:
 		var input: PlayerInput = p["input"]
+		if input.is_bot():
+			continue
 		input.poll()
 		list.handle(input)
 		if not paused:
@@ -134,15 +136,37 @@ func player_count() -> int:
 	return maxi(players.size(), 1)
 
 
+## How strong the crew is: bots count as half a sailor, since they help but not as
+## cleverly as a friend. Used to size hazards so helpers don't make the game harder.
+func crew_strength() -> float:
+	return maxf(human_count() + (player_count() - human_count()) * 0.5, 1.0)
+
+
 ## Grows with crew size and with each voyage, shifted by the chosen difficulty.
 func difficulty() -> float:
-	var base := (player_count() - 2) * 0.12 + (voyage_number - 1) * 0.15
+	var base := (crew_strength() - 2.0) * 0.12 + (voyage_number - 1) * 0.15
 	return maxf(-0.4, base + [-0.3, 0.0, 0.35][settings["difficulty"]])
 
 
 ## Multiplier for damage the ship takes.
 func damage_scale() -> float:
 	return [0.6, 1.0, 1.35][settings["difficulty"]]
+
+
+func human_count() -> int:
+	var n := 0
+	for p in players:
+		if not (p["input"] as PlayerInput).is_bot():
+			n += 1
+	return n
+
+
+## Someone playing alone gets computer-controlled helpers (as many as the settings say).
+func fill_bots() -> void:
+	players = players.filter(func(p: Dictionary) -> bool: return not (p["input"] as PlayerInput).is_bot())
+	if players.size() == 1:
+		for i in settings["bots"]:
+			add_player(PlayerInput.bot())
 
 
 func has_input(input: PlayerInput) -> bool:
@@ -247,6 +271,8 @@ func settings_list(back: Callable) -> OptionList:
 			func(_d: int) -> void: _bump("fullscreen", 0, 0, 0))
 	l.add(func() -> String: return "الصعوبة: %s" % DIFFICULTY_NAMES[settings["difficulty"]], Callable(),
 		func(d: int) -> void: _bump("difficulty", d, 0, 2))
+	l.add(func() -> String: return "مساعدون آليون (لمن يلعب وحده): %d" % settings["bots"], Callable(),
+		func(d: int) -> void: _bump("bots", d, 0, 3))
 	l.add("رجوع", back)
 	return l
 

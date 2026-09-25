@@ -97,6 +97,7 @@ func _join(c: PlayerInput) -> void:
 func _new_game() -> void:
 	if Game.players.is_empty():
 		_join(_actor)
+	Game.fill_bots()
 	Game.new_game()
 	Game.story_kind = "intro"
 	Game.goto(Game.STORY_SCENE)
@@ -105,6 +106,7 @@ func _new_game() -> void:
 func _continue() -> void:
 	if Game.players.is_empty():
 		_join(_actor)
+	Game.fill_bots()
 	Game.continue_run()
 	Game.goto(Game.VOYAGE_SCENE)
 
@@ -164,6 +166,15 @@ func _draw_slot(i: int) -> void:
 		draw_set_transform(Vector2.ZERO)
 		Paint.text(self, Vector2(r.get_center().x, r.position.y + 118.0), info["name"], 22, col.darkened(0.25))
 		Paint.text(self, Vector2(r.get_center().x, r.position.y + 138.0), (info["input"] as PlayerInput).device_name(), 12, Color("#6b6385"), false)
+	elif Game.players.size() == 1 and i <= Game.settings["bots"]:
+		# A lone player gets robot helpers: preview them in the free slots.
+		var col: Color = Game.COLORS[i]
+		draw_style_box(Paint.box(Color(1, 1, 1, 0.45), 18, Color(col, 0.7), 3), r)
+		draw_set_transform(Vector2(r.get_center().x, r.position.y + 100.0), 0.0, Vector2(1.7, 1.7))
+		Player.paint_sailor(self, Vector2.ZERO, Color(col, 0.8), -1, Vector2.ONE, _t + i, false, "", false, false, true)
+		draw_set_transform(Vector2.ZERO)
+		Paint.text(self, Vector2(r.get_center().x, r.position.y + 118.0), "مساعد آلي", 18, Color.WHITE, true, 3, Color(INK, 0.5))
+		Paint.text(self, Vector2(r.get_center().x, r.position.y + 138.0), "أو انضم مكانه", 12, Color(1, 1, 1, 0.8), false)
 	else:
 		draw_style_box(Paint.box(Color(1, 1, 1, 0.16), 18, Color(1, 1, 1, 0.45), 2), r)
 		var a := 0.55 + 0.25 * sin(_t * 3.0 + i * 0.7)
