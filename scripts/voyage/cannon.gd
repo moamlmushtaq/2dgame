@@ -45,6 +45,7 @@ func _fire() -> void:
 	var muzzle := global_position + PIVOT + dir * 46.0
 	voyage.spawn_ball(muzzle, dir * BALL_SPEED)
 	voyage.add_shake(3.0)
+	Sound.play("cannon", -3.0)
 	Fx.burst(voyage.effects, muzzle, Color("#fff0c2"), 14, 200.0, 0.55, -40.0, 0.4)
 
 

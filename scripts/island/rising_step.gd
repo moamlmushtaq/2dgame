@@ -25,6 +25,7 @@ func raise() -> void:
 	if _raised:
 		return
 	_raised = true
+	Sound.play("rumble", -4.0)
 	var tw := create_tween()
 	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(self, "position:y", position.y - rise, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

@@ -13,6 +13,8 @@ const MAX_FALL := 950.0
 const JUMP_VELOCITY := -590.0
 const COYOTE_TIME := 0.1
 const JUMP_BUFFER := 0.12
+const WIND_LIFT := 2700.0
+const WIND_MAX_RISE := 340.0
 const WIDTH := 26.0
 const HEIGHT := 40.0
 
@@ -37,6 +39,8 @@ var fall_limit := 1200.0
 var checkpoint := 0
 ## Set by holes while this player is repairing them; drives the hammer animation.
 var repair_time := 0.0
+## Set by wind vents every frame the sailor is inside an updraft.
+var wind_time := 0.0
 var target: Interactable = null
 
 var _coyote := 0.0
@@ -120,7 +124,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 
 	velocity.y = minf(velocity.y + GRAVITY * delta, MAX_FALL)
-	if velocity.y < 0.0 and not input.held("jump"):
+	if wind_time > 0.0:
+		wind_time -= delta
+		velocity.y = maxf(velocity.y - WIND_LIFT * delta, -WIND_MAX_RISE)
+	elif velocity.y < 0.0 and not input.held("jump"):
 		velocity.y += GRAVITY * 1.3 * delta  # short hop when jump is released early
 
 	_coyote = COYOTE_TIME if is_on_floor() else _coyote - delta
@@ -134,6 +141,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.y = JUMP_VELOCITY
 			_squash = Vector2(0.72, 1.3)
+			Sound.play("jump", -8.0)
 
 	if _drop_time > 0.0:
 		_drop_time -= delta
@@ -204,6 +212,7 @@ func fall_out() -> void:
 	carrying = ""
 	_respawn_time = 1.3
 	velocity = Vector2.ZERO
+	Sound.play("fall", -4.0)
 	visible = false
 	collision_layer = 0
 	collision_mask = 0
@@ -218,6 +227,7 @@ func _respawn() -> void:
 	collision_mask = BODY_MASK
 	_head.collision_layer = LAYER_HEADS
 	_squash = Vector2(0.6, 1.4)
+	Sound.play("respawn", -6.0)
 	Fx.burst(get_parent(), center(), Color.WHITE, 20, 160.0)
 
 

@@ -23,6 +23,7 @@ func _physics_process(delta: float) -> void:
 		var closest := Vector2(clampf(g.x, feet.x - 13.0, feet.x + 13.0), clampf(g.y, feet.y - Player.HEIGHT, feet.y))
 		if closest.distance_to(g) < 14.0:
 			collected.emit()
+			Sound.play("gem", -3.0)
 			Fx.burst(get_parent(), g, Color("#9ff7ff"), 22, 200.0, 0.5)
 			queue_free()
 			return

@@ -19,6 +19,7 @@ func can_interact(player: Player) -> bool:
 
 func interact(player: Player) -> void:
 	player.carrying = "coal"
+	Sound.play("coal")
 	Fx.burst(get_parent(), player.center() + Vector2(0, -30), Color("#6a5f73"), 8, 90.0, 0.35)
 
 

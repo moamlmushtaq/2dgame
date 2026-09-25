@@ -30,6 +30,7 @@ func _physics_process(delta: float) -> void:
 
 
 func kill() -> void:
+	Sound.play("bird", -2.0)
 	Fx.burst(get_parent(), global_position, Color("#8e7fc4"), 18, 200.0, 0.5, 300.0)
 	queue_free()
 

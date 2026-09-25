@@ -43,8 +43,10 @@ func interact(_player: Player) -> void:
 	var g := gathered()
 	if g.x < g.y:
 		island.show_banner("يجب أن يجتمع الطاقم كله حول الصندوق!")
+		Sound.play("click")
 		return
 	opened = true
+	Sound.play("win")
 	Fx.burst(get_parent(), global_position + Vector2(0, -40), Color("#ffd27a"), 40, 320.0, 0.7)
 	island.win()
 

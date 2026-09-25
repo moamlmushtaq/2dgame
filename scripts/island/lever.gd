@@ -19,6 +19,7 @@ func can_interact(_player: Player) -> bool:
 
 func interact(_player: Player) -> void:
 	on = true
+	Sound.play("lever")
 	pulled.emit()
 	Fx.burst(get_parent(), global_position + Vector2(0, -20), Color("#fff4c2"), 16, 160.0, 0.45)
 

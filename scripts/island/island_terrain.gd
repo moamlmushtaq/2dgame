@@ -5,10 +5,10 @@ extends Node2D
 ##
 ## A landmass is a list of Vector3(x_start, x_end, top_y) segments laid left to right.
 
-const GRASS := Color("#69c96b")
-const GRASS_LIGHT := Color("#9be58c")
-const DIRT := Color("#a8704f")
-const ROCK := Color("#7a4a3a")
+var grass := Color("#69c96b")
+var grass_light := Color("#9be58c")
+var dirt := Color("#a8704f")
+var rock := Color("#7a4a3a")
 
 var _lands: Array[Dictionary] = []
 var _trees: Array[Vector4] = []
@@ -70,7 +70,7 @@ func add_wall(r: Rect2) -> void:
 	add_child(body)
 
 
-## kind: 0 = pink blossom tree, 1 = round green tree.
+## kind: 0 = pink blossom tree, 1 = round green tree, 2 = lavender tree.
 func add_tree(pos: Vector2, kind: int, scale_amount := 1.0) -> void:
 	_trees.append(Vector4(pos.x, pos.y, kind, scale_amount))
 
@@ -97,7 +97,7 @@ func _draw() -> void:
 
 func _draw_land(land: Dictionary) -> void:
 	var poly: PackedVector2Array = land["poly"]
-	draw_colored_polygon(poly, ROCK)
+	draw_colored_polygon(poly, rock)
 	# Rock strata on the underside, kept inside its tapering outline.
 	var base: float = land["base"]
 	var depth: float = land["depth"]
@@ -109,19 +109,19 @@ func _draw_land(land: Dictionary) -> void:
 		var a := x0 + (x1 - x0) * f + 30.0
 		var b := x1 - (x1 - x0) * f - 30.0
 		if b - a > 40.0:
-			draw_line(Vector2(a, base + dy), Vector2(b, base + dy + 6.0), ROCK.darkened(0.2), 4.0, true)
+			draw_line(Vector2(a, base + dy), Vector2(b, base + dy + 6.0), rock.darkened(0.2), 4.0, true)
 	for seg: Vector3 in land["segs"]:
 		var w := seg.y - seg.x
-		draw_rect(Rect2(seg.x, seg.z, w, 70.0), DIRT)
-		draw_rect(Rect2(seg.x, seg.z + 64.0, w, 6.0), DIRT.darkened(0.15))
+		draw_rect(Rect2(seg.x, seg.z, w, 70.0), dirt)
+		draw_rect(Rect2(seg.x, seg.z + 64.0, w, 6.0), dirt.darkened(0.15))
 	for seg: Vector3 in land["segs"]:
 		var w := seg.y - seg.x
 		var x := seg.x + 6.0
 		while x < seg.y - 4.0:
-			draw_circle(Vector2(x, seg.z + 12.0), 8.0, GRASS, true, -1.0, true)
+			draw_circle(Vector2(x, seg.z + 12.0), 8.0, grass, true, -1.0, true)
 			x += 22.0
-		draw_style_box(Paint.box(GRASS, 10), Rect2(seg.x - 8.0, seg.z - 10.0, w + 16.0, 24.0))
-		draw_style_box(Paint.box(GRASS_LIGHT, 5), Rect2(seg.x - 4.0, seg.z - 10.0, w + 8.0, 7.0))
+		draw_style_box(Paint.box(grass, 10), Rect2(seg.x - 8.0, seg.z - 10.0, w + 16.0, 24.0))
+		draw_style_box(Paint.box(grass_light, 5), Rect2(seg.x - 4.0, seg.z - 10.0, w + 8.0, 7.0))
 
 
 func _draw_tree(tree: Vector4) -> void:
@@ -131,8 +131,10 @@ func _draw_tree(tree: Vector4) -> void:
 	var trunk := Color("#8a5a3c")
 	draw_colored_polygon(PackedVector2Array([base + Vector2(-7, 0) * s, base + Vector2(7, 0) * s,
 		base + Vector2(4 + sway, -70) * s, base + Vector2(-4 + sway, -70) * s]), trunk)
-	var light := Color("#ffc3d8") if tree.z == 0.0 else Color("#7fdc8f")
-	var dark := Color("#f59bbd") if tree.z == 0.0 else Color("#56b872")
+	var lights := [Color("#ffc3d8"), Color("#7fdc8f"), Color("#d4c4ff")]
+	var darks := [Color("#f59bbd"), Color("#56b872"), Color("#a98cf0")]
+	var light: Color = lights[int(tree.z)]
+	var dark: Color = darks[int(tree.z)]
 	var puffs := [Vector3(0, -86, 34), Vector3(-30, -70, 26), Vector3(30, -70, 26), Vector3(-16, -108, 24), Vector3(18, -106, 24)]
 	for p: Vector3 in puffs:
 		draw_circle(base + (Vector2(p.x + sway, p.y + 6.0)) * s, p.z * s, dark, true, -1.0, true)

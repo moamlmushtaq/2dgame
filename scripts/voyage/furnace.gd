@@ -36,6 +36,7 @@ func interact(player: Player) -> void:
 		return
 	player.carrying = ""
 	voyage.fuel = minf(voyage.fuel + COAL_FUEL, 100.0)
+	Sound.play("feed")
 	Fx.burst(get_parent(), global_position + Vector2(0, -34), Color("#ffb347"), 22, 220.0, 0.6, -60.0)
 
 

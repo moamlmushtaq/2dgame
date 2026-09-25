@@ -11,6 +11,7 @@ var progress := 0.0
 var _t := 0.0
 var _shape := PackedVector2Array()
 var _wind: CPUParticles2D
+var _knock := 0.0
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func _ready() -> void:
 	_wind.color_ramp = ramp
 	add_child(_wind)
 	Fx.burst(get_parent(), global_position, Ship.WOOD_LIGHT, 18, 240.0, 0.45, 500.0)
+	Sound.play("crack")
 
 
 func hint(_player: Player) -> String:
@@ -60,9 +62,14 @@ func _physics_process(delta: float) -> void:
 			p.facing = 1 if global_position.x > p.global_position.x else -1
 	if fixers > 0:
 		progress += delta * fixers / REPAIR_TIME
+		_knock -= delta
+		if _knock <= 0.0:
+			_knock = 0.2
+			Sound.play("hammer", -6.0, 1.0, 0.15)
 	else:
 		progress = maxf(progress - delta * 0.3, 0.0)
 	if progress >= 1.0:
+		Sound.play("fixed", -2.0)
 		Fx.burst(get_parent(), global_position + Vector2(0, -10), Color("#fff4c2"), 20, 200.0, 0.5)
 		voyage.remove_hole(self)
 		queue_free()

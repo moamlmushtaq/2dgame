@@ -38,6 +38,7 @@ var _first_hole := true
 func _ready() -> void:
 	Game.ensure_players()
 	_diff = Game.difficulty()
+	Sound.play_music("voyage")
 
 	var back := CanvasLayer.new()
 	back.layer = -10
@@ -184,6 +185,7 @@ func _spawn_bird(i: int) -> void:
 func rock_hit(rock: Rock) -> void:
 	hp -= 12.0
 	add_shake(14.0)
+	Sound.play("crash")
 	Fx.burst(effects, rock.global_position, Color("#a89bb0"), 30, 320.0, 0.7)
 	add_hole()
 	add_hole()
@@ -195,6 +197,7 @@ func rock_destroyed(rock: Rock) -> void:
 	Fx.burst(effects, rock.global_position, Color("#b8a9c4"), 34, 300.0, 0.8)
 	Fx.burst(effects, rock.global_position, Color("#8ff0ff"), 12, 220.0, 0.4)
 	add_shake(6.0)
+	Sound.play("crash", -5.0, 1.3)
 	rock.queue_free()
 
 
@@ -247,6 +250,8 @@ func _wreck() -> void:
 	hp = 0.0
 	banner_time = 0.0
 	add_shake(22.0)
+	Sound.stop_music()
+	Sound.play("wreck")
 	for p in players:
 		p.leave_station()
 		p.frozen = true
@@ -256,6 +261,7 @@ func _wreck() -> void:
 
 func _arrive() -> void:
 	state = State.ARRIVED
+	Sound.play("win")
 	for b in get_tree().get_nodes_in_group("birds"):
 		b.flee()
 	var isle := IslandAhead.new()

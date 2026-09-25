@@ -13,6 +13,7 @@ var _t := 0.0
 func _ready() -> void:
 	Game.players.clear()
 	Game.new_game()
+	Sound.play_music("island")
 
 	var back := CanvasLayer.new()
 	back.layer = -10
@@ -44,11 +45,13 @@ func _physics_process(delta: float) -> void:
 		c.poll()
 		if Game.has_input(c):
 			if c.pressed("interact"):
+				Sound.play("join", 0.0, 1.5)
 				Game.goto(Game.VOYAGE_SCENE)
 				return
 		elif c.pressed("jump") and Game.add_player(c):
 			var slot := Game.players.size() - 1
 			_pop[slot] = 1.0
+			Sound.play("join", 0.0, 1.0 + slot * 0.1, 0.0)
 			Fx.burst(self, _slot_rect(slot).get_center(), Game.COLORS[slot], 26, 240.0, 0.6)
 	queue_redraw()
 

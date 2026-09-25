@@ -11,7 +11,10 @@ var pressed := false
 func _physics_process(_delta: float) -> void:
 	var gx := global_position.x
 	count = IslandProps.count_standing(get_tree(), gx - width * 0.5 - 6.0, gx + width * 0.5 + 6.0, global_position.y)
+	var was := pressed
 	pressed = count >= need
+	if pressed != was:
+		Sound.play("click", -4.0, 1.4 if pressed else 1.0)
 	queue_redraw()
 
 

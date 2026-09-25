@@ -51,6 +51,7 @@ func damage(amount: int) -> void:
 		return
 	hp -= amount
 	_flash = 0.12
+	Sound.play("coal", -2.0, 0.7)
 	if hp <= 0:
 		voyage.rock_destroyed(self)
 
