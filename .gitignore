@@ -6,3 +6,9 @@
 /build/
 /export/
 *.tmp
+
+# Raw AI-generated art (large source files); processed images live in assets/art
+/art_source/
+
+# AI art drops waiting to be processed (see docs/art/PROMPTS.md)
+/art_inbox/
