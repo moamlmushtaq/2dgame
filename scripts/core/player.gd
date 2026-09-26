@@ -176,7 +176,7 @@ func _physics_process(delta: float) -> void:
 ## A little puff of dust at the feet (jumping off and landing hard).
 func _dust(amount: int) -> void:
 	if get_parent() != null:
-		Fx.burst(get_parent(), global_position + Vector2(0, -2), Color(1, 0.97, 0.9, 0.85), amount, 110.0, 0.35, -60.0, 0.35)
+		Fx.smoke(get_parent(), global_position + Vector2(0, -3), Color(1, 0.97, 0.92, 0.7), amount, 0.35, 0.45, -20.0)
 
 
 func _on_one_way() -> bool:
@@ -242,7 +242,8 @@ func _respawn() -> void:
 	_head.collision_layer = LAYER_HEADS
 	_squash = Vector2(0.6, 1.4)
 	Sound.play("respawn", -6.0)
-	Fx.burst(get_parent(), center(), Color.WHITE, 20, 160.0)
+	Fx.burst(get_parent(), center(), color.lightened(0.5), 20, 160.0, 0.5, 200.0, 0.7, true)
+	Fx.flash(get_parent(), center(), 70.0, Color(color.lightened(0.6), 0.8), 0.35)
 
 
 func _draw() -> void:

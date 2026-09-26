@@ -15,6 +15,7 @@ const STRIPE_B := Color("#ff8e8e")
 ## Glitch lantern (CC0, see assets/art/CREDITS.md), hung under the decks.
 const LANTERN := preload("res://assets/art/props/lantern.png")
 const BALLOON_CENTER := Vector2(655, 170)
+const LANTERN_HOOKS := [Vector2(205, 434), Vector2(405, 434), Vector2(585, 414), Vector2(725, 414)]
 const HULL := [Vector2(128, 512), Vector2(1150, 512), Vector2(1228, 468), Vector2(1200, 560),
 	Vector2(1095, 650), Vector2(310, 662), Vector2(170, 618), Vector2(118, 548)]
 
@@ -22,11 +23,16 @@ const HULL := [Vector2(128, 512), Vector2(1150, 512), Vector2(1228, 468), Vector
 static var _shapes := {}
 
 var prop_speed := 1.0
+var _lantern_glows: Array[Sprite2D] = []
 var _prop := 0.0
 var _t := 0.0
 
 
 func _ready() -> void:
+	for hook in LANTERN_HOOKS:
+		var g := Fx.glow(self, hook + Vector2(0, 38), 70.0, Color(1.0, 0.75, 0.35, 0.35))
+		g.z_index = 1
+		_lantern_glows.append(g)
 	_solid(Rect2(150, DECK_Y, 1000, 30))    # main deck
 	_solid(Rect2(470, 465, 60, 55))         # cargo crate, a step up to the crow's nest
 	_solid(Rect2(138, 120, 22, 410))        # stern wall
@@ -56,6 +62,8 @@ func _one_way(r: Rect2) -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_prop += delta * (3.0 + 16.0 * prop_speed)
+	for i in _lantern_glows.size():
+		_lantern_glows[i].modulate.a = 0.32 + 0.06 * sin(_t * 7.0 + i * 1.7) + randf_range(-0.02, 0.02)
 	queue_redraw()
 
 
@@ -158,7 +166,7 @@ static func paint(ci: CanvasItem, t: float, prop: float, pal := {}) -> void:
 
 	# Lanterns under the quarterdeck and the crow's nest, with a soft flickering glow.
 	for i in 4:
-		var hook: Vector2 = [Vector2(205, 434), Vector2(405, 434), Vector2(585, 414), Vector2(725, 414)][i]
+		var hook: Vector2 = LANTERN_HOOKS[i]
 		var glow := 0.16 + 0.05 * sin(t * 7.0 + i * 1.7)
 		ci.draw_circle(hook + Vector2(0, 38), 24.0, Color(1.0, 0.8, 0.3, glow * 0.6), true, -1.0, true)
 		ci.draw_circle(hook + Vector2(0, 38), 13.0, Color(1.0, 0.85, 0.4, glow), true, -1.0, true)

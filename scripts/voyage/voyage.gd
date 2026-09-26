@@ -29,6 +29,8 @@ var effects: Node2D
 var camera: Camera2D
 ## The pirate flagship on the final voyage, otherwise null.
 var boss: PirateShip = null
+var ambient: Ambient
+var foreground: Foreground
 
 var _diff := 0.0
 var _rock_timer := 12.0
@@ -93,6 +95,13 @@ func _ready() -> void:
 		boss.voyage = self
 		hazards.add_child(boss)
 
+	add_child(Atmosphere.new("battle" if final else "day"))
+	ambient = Ambient.new({"motes": {"count": 22, "color": Color(1.0, 0.96, 0.82, 0.8),
+		"drift": Vector2(-70.0, -6.0), "size": Vector2(1.5, 3.5)}, "streaks": 14})
+	add_child(ambient)
+	foreground = Foreground.new("clouds")
+	add_child(foreground)
+
 	var ui := CanvasLayer.new()
 	ui.layer = 10
 	add_child(ui)
@@ -155,6 +164,8 @@ func _physics_process(delta: float) -> void:
 	sky.scroll_speed = 90.0 * speed_factor()
 	sky.parallax = Vector2(0, -altitude)
 	ship.prop_speed = speed_factor()
+	ambient.speed_scale = speed_factor()
+	foreground.speed_scale = speed_factor()
 	_shake = maxf(_shake - delta * 18.0, 0.0)
 	camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake + Vector2(0, sin(elapsed * 1.3) * 4.0)
 
@@ -207,7 +218,10 @@ func rock_hit(rock: Rock) -> void:
 	hp -= 12.0 * Game.damage_scale()
 	add_shake(14.0)
 	Sound.play("crash")
-	Fx.burst(effects, rock.global_position, Color("#a89bb0"), 30, 320.0, 0.7)
+	Fx.debris(effects, rock.global_position, Color("#8f8aa0"), 22, 420.0, 1.3)
+	Fx.debris(effects, rock.global_position + Vector2(-40, 20), Ship.WOOD_LIGHT, 14, 360.0)
+	Fx.smoke(effects, rock.global_position, Color(0.75, 0.72, 0.8, 0.8), 10, 1.4)
+	Fx.flash(effects, rock.global_position, 120.0, Color(1, 0.9, 0.8, 0.5), 0.3)
 	add_hole()
 	add_hole()
 	show_banner("اصطدام! أصلحوا الثقوب بسرعة")
@@ -215,8 +229,11 @@ func rock_hit(rock: Rock) -> void:
 
 
 func rock_destroyed(rock: Rock) -> void:
-	Fx.burst(effects, rock.global_position, Color("#b8a9c4"), 34, 300.0, 0.8)
-	Fx.burst(effects, rock.global_position, Color("#8ff0ff"), 12, 220.0, 0.4)
+	Fx.debris(effects, rock.global_position, Color("#9a97ab"), 26, 460.0, 1.4)
+	Fx.smoke(effects, rock.global_position, Color(0.8, 0.78, 0.86, 0.75), 10, 1.5)
+	Fx.sparks(effects, rock.global_position, Color("#8ff0ff"), 20, 420.0, 200.0, 0.8)
+	Fx.flash(effects, rock.global_position, 150.0, Color(0.6, 0.95, 1.0, 0.8), 0.4)
+	Fx.ring(effects, rock.global_position, 110.0, Color(0.7, 0.95, 1.0, 0.8), 0.45, 5.0)
 	add_shake(6.0)
 	Sound.play("crash", -5.0, 1.3)
 	rock.queue_free()
@@ -226,7 +243,8 @@ func bird_hit(bird: Bird) -> void:
 	hp -= 3.0 * Game.damage_scale()
 	add_shake(5.0)
 	add_hole(bird.target.x)
-	Fx.burst(effects, bird.global_position, Color("#8e7fc4"), 16, 180.0)
+	Fx.debris(effects, bird.target, Ship.WOOD_LIGHT, 12, 300.0, 0.9)
+	Fx.smoke(effects, bird.target, Color(0.95, 0.9, 0.85, 0.6), 5, 0.7, 0.8)
 	bird.queue_free()
 
 
@@ -242,7 +260,8 @@ func bomb_landed(bomb: Bomb) -> void:
 	hp -= 5.0 * Game.damage_scale()
 	add_shake(8.0)
 	Sound.play("crash", -4.0, 1.2)
-	Fx.burst(effects, bomb.target, Color("#ffb347"), 24, 260.0, 0.6)
+	Fx.explosion(effects, bomb.target, Color("#ffb347"), 1.1)
+	Fx.debris(effects, bomb.target, Ship.WOOD_LIGHT, 14, 380.0)
 	add_hole(bomb.target.x)
 	bomb.queue_free()
 

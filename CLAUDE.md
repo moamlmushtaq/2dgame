@@ -27,8 +27,14 @@ scripts/core/           Autoloads and shared pieces:
   bot_brain.gd          AI crewmates for solo players (see below).
   interactable.gd       Base for things used with the interact button; station.gd for
                         things a player climbs into and steers (helm, cannons).
-  paint.gd, fx.gd       Drawing helpers (rounded boxes, Arabic text, bars, map icons),
-                        particle bursts.
+  paint.gd, fx.gd       Drawing helpers (rounded boxes, Arabic text, bars, map icons,
+                        ground shadows); Fx: bursts, sparks, smoke, debris, flashes,
+                        shockwave rings (fx_ring.gd), explosions and additive glows.
+  atmosphere.gd         Full-screen finish (assets/shaders/atmosphere.gdshader): bloom,
+                        colour grade, vignette; presets per scene; off on "low" quality.
+  ambient.gd            Glowing motes/fireflies, wind streaks, falling petals.
+  foreground.gd         Depth layer in front of play: cloud wisps (voyage), dark foliage
+                        silhouettes (islands).
   sky_backdrop.gd       Painted parallax sky (class is SkyBackdrop — `Sky` clashes with
                         a Godot built-in class).
   option_list.gd        Menu list driven by PlayerInputs (menus, pause, settings).
@@ -60,6 +66,11 @@ export_presets.cfg      Windows / Linux / Web. .github/workflows/build.yml build
 - Difficulty: `Game.difficulty()` and `Game.crew_strength()` (bots count as half a sailor
   for hazard sizing). Island puzzles scale with `Game.player_count()` (real bodies).
 - Save file: `user://cloud_ship.cfg` (settings, stats, run in progress).
+- Visual layers (CanvasLayer.layer): sky -10, world 0, Ambient 1, Foreground 3,
+  Atmosphere 5, HUD 10. Menu and story draw their text in the world layer, so they put
+  Atmosphere at -5 (grades only the sky). Lights are additive: use `Fx.glow()` /
+  `Fx.additive()`, not bright opaque circles. Keep effects readable: gameplay pieces
+  (cloud platforms, plates, hazards) must stay distinct from glow and fog.
 
 ## GDScript gotchas we hit
 

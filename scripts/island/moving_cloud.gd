@@ -44,7 +44,7 @@ func _draw() -> void:
 		draw_circle(Vector2(p.x, p.y + 6.0), p.z, shade, true, -1.0, true)
 	for p: Vector3 in [Vector3(-44, 8, 18), Vector3(-18, 2, 24), Vector3(14, 0, 26), Vector3(44, 8, 18)]:
 		draw_circle(Vector2(p.x, p.y), p.z, body, true, -1.0, true)
-	draw_style_box(Paint.box(body, 10), Rect2(-width * 0.5, 0, width, 20))
+	draw_style_box(Paint.box(body, 10, Color("#9d92d8"), 2), Rect2(-width * 0.5, 0, width, 20))
 	draw_line(Vector2(-width * 0.5 + 6.0, 0), Vector2(width * 0.5 - 6.0, 0), Color(1, 1, 1, 0.9), 3.0)
 	var ink := Color("#4a3f6b")
 	var blink := fmod(_t + phase * 3.0, 4.0) < 0.12

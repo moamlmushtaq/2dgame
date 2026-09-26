@@ -21,6 +21,10 @@ const BUSHES := [
 	preload("res://assets/art/island/bush_3.png"), preload("res://assets/art/island/grass_1.png"),
 	preload("res://assets/art/island/grass_2.png"),
 ]
+const CRYSTALS := [
+	preload("res://assets/art/island/crystal_1.png"), preload("res://assets/art/island/crystal_2.png"),
+	preload("res://assets/art/island/crystal_3.png"),
+]
 ## Height of a scale-1 tree in pixels.
 const TREE_HEIGHT := 150.0
 
@@ -35,6 +39,9 @@ var _flowers: Array[Vector3] = []
 ## Vector4(x, ground_y, kind, scale); kinds 0-2 are bushes, 3-4 grass tufts.
 var _bushes: Array[Vector4] = []
 var _pebbles: Array[Vector3] = []
+## Vector4(x, y, length, phase): roots dangling under the grass.
+var _roots: Array[Vector4] = []
+var _crystals: Array[Dictionary] = []
 var _waterfalls: Array[Vector2] = []
 var _t := 0.0
 
@@ -85,6 +92,20 @@ func add_land(segs: Array) -> void:
 		while x < seg.y - 10.0:
 			_pebbles.append(Vector3(x, seg.z + rng.randf_range(26.0, 58.0), rng.randf_range(2.5, 5.5)))
 			x += rng.randf_range(18.0, 46.0)
+		x = seg.x + rng.randf_range(10.0, 40.0)
+		while x < seg.y - 10.0:
+			_roots.append(Vector4(x, seg.z + 68.0, rng.randf_range(22.0, 75.0), rng.randf() * TAU))
+			x += rng.randf_range(28.0, 70.0)
+	# Glowing sky crystals growing down out of the rock, like stalactites.
+	for i in int(w / 320.0) + 1:
+		for attempt in 6:
+			var p := Vector2(rng.randf_range(x0 + w * 0.12, x1 - w * 0.12), base_y + depth * rng.randf_range(0.1, 0.55))
+			if Geometry2D.is_point_in_polygon(p, top):
+				var tint := Color(0.55, 0.95, 1.0, 0.4) if rng.randf() < 0.7 else Color(0.8, 0.6, 1.0, 0.4)
+				_crystals.append({"pos": p, "tex": CRYSTALS[rng.randi() % CRYSTALS.size()], "rot": PI + rng.randf_range(-0.5, 0.5),
+					"scale": rng.randf_range(0.55, 0.9)})
+				Fx.glow(self, p + Vector2(0, 30), rng.randf_range(70.0, 110.0), tint)
+				break
 
 
 ## Invisible wall so nobody walks off the edge of the world.
@@ -152,6 +173,31 @@ func _draw_land(land: Dictionary) -> void:
 		var w := seg.y - seg.x
 		draw_rect(Rect2(seg.x, seg.z, w, 70.0), dirt)
 		draw_rect(Rect2(seg.x, seg.z + 64.0, w, 6.0), dirt.darkened(0.15))
+	# Shade cast under the grass lip, then dangling roots.
+	for seg: Vector3 in land["segs"]:
+		var y0 := seg.z + 70.0
+		draw_polygon(PackedVector2Array([Vector2(seg.x, y0), Vector2(seg.y, y0), Vector2(seg.y, y0 + 46.0), Vector2(seg.x, y0 + 46.0)]),
+			PackedColorArray([Color(0.08, 0.02, 0.12, 0.35), Color(0.08, 0.02, 0.12, 0.35), Color(0.08, 0.02, 0.12, 0), Color(0.08, 0.02, 0.12, 0)]))
+	var root_col := rock.darkened(0.45)
+	for rt in _roots:
+		if rt.x < land["x0"] or rt.x > land["x1"]:
+			continue
+		var prev := Vector2(rt.x, rt.y)
+		for k in range(1, 6):
+			var f := k / 5.0
+			var sway := sin(_t * 1.2 + rt.w + f * 2.0) * 4.0 * f
+			var pt := Vector2(rt.x + sin(rt.w * 3.0 + f * 4.0) * 5.0 * f + sway, rt.y + rt.z * f)
+			draw_line(prev, pt, root_col, 3.5 * (1.0 - f * 0.7), true)
+			prev = pt
+	for cr in _crystals:
+		var p: Vector2 = cr["pos"]
+		if p.x < land["x0"] or p.x > land["x1"]:
+			continue
+		var tex: Texture2D = cr["tex"]
+		var sc: float = cr["scale"]
+		draw_set_transform(p, cr["rot"], Vector2(sc, sc))
+		draw_texture(tex, Vector2(-tex.get_width() * 0.5, -tex.get_height() + 8.0))
+		draw_set_transform(Vector2.ZERO)
 	for pb in _pebbles:
 		if pb.x >= land["x0"] and pb.x <= land["x1"]:
 			draw_colored_polygon(Paint.ellipse(Vector2(pb.x, pb.y), pb.z * 1.4, pb.z, 10), dirt.darkened(0.22))

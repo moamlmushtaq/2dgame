@@ -35,7 +35,8 @@ func _build() -> void:
 	body.add_child(cs)
 	add_child(body)
 	for b in bells:
-		Fx.burst(get_parent(), b.global_position + Vector2(0, -60), b.color, 24, 220.0, 0.5)
+		Fx.burst(get_parent(), b.global_position + Vector2(0, -60), b.color, 24, 220.0, 0.5, 200.0, 0.7, true)
+		Fx.ring(get_parent(), b.global_position + Vector2(0, -60), 140.0, Color(b.color.lightened(0.4), 0.9), 0.7, 6.0)
 
 
 func _draw() -> void:

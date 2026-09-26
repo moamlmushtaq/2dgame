@@ -67,6 +67,16 @@ func _ready() -> void:
 	camera.limit_bottom = 1000
 	add_child(camera)
 
+	var blossom := Game.voyage_number % 2 == 1
+	add_child(Atmosphere.new("blossom" if blossom else "wind"))
+	var fireflies := Color(1.0, 0.95, 0.6, 0.85) if blossom else Color(0.7, 1.0, 0.95, 0.85)
+	add_child(Ambient.new({"motes": {"count": 34, "color": fireflies, "drift": Vector2(-6.0, -10.0),
+		"size": Vector2(1.5, 3.5)}, "petals": 18 if blossom else 0}))
+	var front := Foreground.new("silhouettes")
+	front.tint = Color(0.14, 0.08, 0.2, 0.93) if blossom else Color(0.12, 0.08, 0.24, 0.93)
+	front.add_silhouettes(-500.0, right_edge + 500.0)
+	add_child(front)
+
 	var ui := CanvasLayer.new()
 	ui.layer = 10
 	add_child(ui)
@@ -141,7 +151,7 @@ func _build_wind(n: int) -> float:
 	sky.top_color = Color("#7b86f0")
 	sky.bottom_color = Color("#ffd3e2")
 	sky.sun_color = Color("#fff0d6")
-	sky.sun_pos = Vector2(0.8, 0.3)
+	sky.sun_pos = Vector2(0.86, 0.15)
 	terrain.grass = Color("#5fcfb2")
 	terrain.grass_light = Color("#a4f0d9")
 	terrain.dirt = Color("#b08270")

@@ -10,6 +10,11 @@ var velocity := Vector2.ZERO
 var _life := 3.0
 
 
+func _ready() -> void:
+	# A hot glow around the ball as it flies.
+	Fx.glow(self, Vector2.ZERO, 22.0, Color(1.0, 0.8, 0.45, 0.45))
+
+
 func _physics_process(delta: float) -> void:
 	velocity.y += GRAVITY * delta
 	position += velocity * delta
@@ -44,7 +49,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _pop() -> void:
-	Fx.burst(get_parent(), global_position, Color("#fff0c2"), 12, 180.0, 0.45)
+	Fx.flash(get_parent(), global_position, 60.0, Color(1, 0.95, 0.8, 0.8), 0.22)
+	Fx.sparks(get_parent(), global_position, Color("#ffd27a"), 10, 320.0, 400.0, 0.4)
+	Fx.smoke(get_parent(), global_position, Color(0.9, 0.88, 0.95, 0.5), 4, 0.6, 0.7)
 	queue_free()
 
 

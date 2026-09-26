@@ -25,7 +25,7 @@ var gems := 0
 ## "intro" or "ending": which story the story scene tells.
 var story_kind := "intro"
 
-var settings := {"music": 7, "sfx": 8, "fullscreen": false, "difficulty": 1, "bots": 2}
+var settings := {"music": 7, "sfx": 8, "fullscreen": false, "difficulty": 1, "bots": 2, "fancy": true}
 var stats := {"runs": 0, "best_gems": 0}
 ## The run in progress, saved after every island: {voyage, pieces, gems}.
 var saved_run := {}
@@ -269,6 +269,8 @@ func settings_list(back: Callable) -> OptionList:
 	if not OS.has_feature("web"):
 		l.add(func() -> String: return "ملء الشاشة: %s" % ("نعم" if settings["fullscreen"] else "لا"), Callable(),
 			func(_d: int) -> void: _bump("fullscreen", 0, 0, 0))
+	l.add(func() -> String: return "جودة الرسومات: %s" % ("عالية" if settings["fancy"] else "منخفضة"), Callable(),
+		func(_d: int) -> void: _bump("fancy", 0, 0, 0))
 	l.add(func() -> String: return "الصعوبة: %s" % DIFFICULTY_NAMES[settings["difficulty"]], Callable(),
 		func(d: int) -> void: _bump("difficulty", d, 0, 2))
 	l.add(func() -> String: return "مساعدون آليون (لمن يلعب وحده): %d" % settings["bots"], Callable(),

@@ -45,6 +45,9 @@ func _ready() -> void:
 	var cam := Camera2D.new()
 	cam.position = Vector2(640, 360)
 	add_child(cam)
+	add_child(Atmosphere.new("sunset" if _ending else "dusk", -5))
+	add_child(Ambient.new({"motes": {"count": 30, "color": Color(1.0, 0.9, 0.7, 0.8) if _ending else Color(1.0, 0.85, 0.9, 0.8),
+		"drift": Vector2(-4.0, -18.0), "size": Vector2(1.5, 3.5)}}))
 
 
 func _physics_process(delta: float) -> void:

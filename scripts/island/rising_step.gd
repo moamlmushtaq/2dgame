@@ -29,7 +29,8 @@ func raise() -> void:
 	var tw := create_tween()
 	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(self, "position:y", position.y - rise, 0.9).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	Fx.burst(get_parent(), global_position + Vector2(size.x * 0.5, 0), Color("#d8c9b0"), 24, 200.0, 0.6)
+	Fx.smoke(get_parent(), global_position + Vector2(size.x * 0.5, 0), Color(0.9, 0.85, 0.78, 0.8), 12, 1.3, 1.1)
+	Fx.debris(get_parent(), global_position + Vector2(size.x * 0.5, 0), Color("#b8b3c9"), 12, 300.0)
 
 
 func _process(delta: float) -> void:

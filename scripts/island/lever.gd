@@ -21,7 +21,8 @@ func interact(_player: Player) -> void:
 	on = true
 	Sound.play("lever")
 	pulled.emit()
-	Fx.burst(get_parent(), global_position + Vector2(0, -20), Color("#fff4c2"), 16, 160.0, 0.45)
+	Fx.sparks(get_parent(), global_position + Vector2(0, -20), Color("#ffe08a"), 14, 300.0, 500.0)
+	Fx.flash(get_parent(), global_position + Vector2(0, -20), 60.0, Color(1, 0.95, 0.7, 0.7), 0.25)
 
 
 func hint(_player: Player) -> String:

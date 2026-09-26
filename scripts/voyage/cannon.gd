@@ -55,7 +55,9 @@ func _fire() -> void:
 	voyage.spawn_ball(muzzle, dir * BALL_SPEED)
 	voyage.add_shake(3.0)
 	Sound.play("cannon", -3.0)
-	Fx.burst(voyage.effects, muzzle, Color("#fff0c2"), 14, 200.0, 0.55, -40.0, 0.4)
+	Fx.flash(voyage.effects, muzzle, 70.0, Color(1, 0.85, 0.5, 0.95), 0.18)
+	Fx.sparks(voyage.effects, muzzle, Color("#ffcf6b"), 10, 420.0, 200.0, 0.3, dir, 22.0)
+	Fx.smoke(voyage.effects, muzzle + dir * 10.0, Color(0.92, 0.9, 0.96, 0.65), 7, 0.8, 1.0, -25.0)
 
 
 ## `a` written inside [min_angle, max_angle] (the mast's range crosses ±PI), or NAN if the

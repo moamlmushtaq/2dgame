@@ -40,6 +40,8 @@ func _physics_process(delta: float) -> void:
 		rotation = move_toward(rotation, -0.5, delta * 0.3)
 		position.y += delta * 160.0
 		if randf() < 0.2:
+			if randf() < 0.15:
+				Fx.explosion(get_parent(), global_position + Vector2(randf_range(-120, 120), randf_range(-60, 40)), Color("#ffb347"), 0.6)
 			Fx.burst(get_parent(), global_position + Vector2(randf_range(-120, 120), randf_range(-60, 40)), Color("#6a5a85"), 8, 120.0, 0.6, -40.0)
 		if global_position.y > 1100.0:
 			visible = false  # kept alive: the HUD still reads its health
@@ -92,6 +94,8 @@ func damage(amount: int) -> void:
 		hp = 0
 		sinking = true
 		voyage.boss_defeated()
+		for k in 3:
+			Fx.explosion(get_parent(), global_position + Vector2(randf_range(-110, 110), randf_range(-50, 30)), Color("#ffb347"), 1.4 - k * 0.3)
 
 
 func _draw() -> void:

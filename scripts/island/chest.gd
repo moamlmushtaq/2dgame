@@ -7,6 +7,7 @@ const GATHER_RADIUS := 260.0
 
 var island
 var opened := false
+var _glow: Sprite2D
 var _lid := 0.0
 var _piece := 0.0
 var _t := 0.0
@@ -15,6 +16,7 @@ var _t := 0.0
 func _ready() -> void:
 	interact_radius = 70.0
 	z_index = 2
+	_glow = Fx.glow(self, Vector2(0, -30), 90.0, Color(1.0, 0.85, 0.45, 0.25))
 
 
 func gathered() -> Vector2i:
@@ -47,12 +49,19 @@ func interact(_player: Player) -> void:
 		return
 	opened = true
 	Sound.play("win")
-	Fx.burst(get_parent(), global_position + Vector2(0, -40), Color("#ffd27a"), 40, 320.0, 0.7)
+	var c := global_position + Vector2(0, -40)
+	Fx.burst(get_parent(), c, Color("#ffd27a"), 40, 320.0, 0.7, 200.0, 1.0, true)
+	Fx.sparks(get_parent(), c, Color("#ffd27a"), 30, 520.0, 300.0, 0.9)
+	Fx.flash(get_parent(), c, 260.0, Color(1, 0.9, 0.55, 0.9), 0.8)
+	Fx.ring(get_parent(), c, 200.0, Color(1, 0.9, 0.6, 0.9), 0.7, 8.0)
+	_glow.modulate.a = 0.7
 	island.win()
 
 
 func _process(delta: float) -> void:
 	_t += delta
+	if not opened:
+		_glow.modulate.a = 0.2 + 0.08 * sin(_t * 2.0)
 	if opened:
 		_lid = move_toward(_lid, 1.0, delta * 3.0)
 		_piece = move_toward(_piece, 1.0, delta * 0.8)

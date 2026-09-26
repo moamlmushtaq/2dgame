@@ -14,4 +14,4 @@ birds are "Bird B" (red) and "Bird D" (grey), frames 1–4.
 Island art: `tree_deciduous2` (green; recoloured pink for `tree_blossom` and lavender for
 `tree_lavender`), `groddle_bush1`, `bush_1/2`, `groddle_grass_1/2`, `flower_button_1/2`,
 `wildflowers_pink_1`, `wildflowers_purple_1`, `wildflowers_yellow_1`, `wildflowers_blue_2`,
-`sign_blank_wide_g1` (signboard).
+`sign_blank_wide_g1` (signboard), `cave_crystal_4/5/7` (crystals under the islands).

@@ -26,7 +26,9 @@ func interact(_player: Player) -> void:
 	rung_at = now()
 	_swing = 1.0
 	Sound.play("bell", -2.0, pitch, 0.0)
-	Fx.burst(get_parent(), global_position + Vector2(0, -60), color, 14, 150.0, 0.4, -20.0)
+	Fx.burst(get_parent(), global_position + Vector2(0, -60), color, 14, 150.0, 0.4, -20.0, 0.7, true)
+	Fx.ring(get_parent(), global_position + Vector2(0, -60), 90.0, Color(color.lightened(0.3), 0.8), 0.6, 4.0)
+	Fx.flash(get_parent(), global_position + Vector2(0, -60), 70.0, Color(color.lightened(0.4), 0.6), 0.3)
 
 
 ## Seconds since the bell rang, or a large number if it hasn't.

@@ -30,14 +30,14 @@ func _ready() -> void:
 	_wind.initial_velocity_min = 60.0
 	_wind.initial_velocity_max = 120.0
 	_wind.gravity = Vector2(-60, 0)
-	_wind.scale_amount_min = 0.25
-	_wind.scale_amount_max = 0.5
+	_wind.scale_amount_min = 0.12
+	_wind.scale_amount_max = 0.25
 	var ramp := Gradient.new()
 	ramp.set_color(0, Color(1, 1, 1, 0.8))
 	ramp.set_color(1, Color(1, 1, 1, 0.0))
 	_wind.color_ramp = ramp
 	add_child(_wind)
-	Fx.burst(get_parent(), global_position, Ship.WOOD_LIGHT, 18, 240.0, 0.45, 500.0)
+	Fx.debris(get_parent(), global_position, Ship.WOOD_LIGHT, 16, 320.0)
 	Sound.play("crack")
 
 
@@ -70,7 +70,8 @@ func _physics_process(delta: float) -> void:
 		progress = maxf(progress - delta * 0.3, 0.0)
 	if progress >= 1.0:
 		Sound.play("fixed", -2.0)
-		Fx.burst(get_parent(), global_position + Vector2(0, -10), Color("#fff4c2"), 20, 200.0, 0.5)
+		Fx.burst(get_parent(), global_position + Vector2(0, -10), Color("#fff4c2"), 20, 200.0, 0.5, 200.0, 0.7, true)
+		Fx.ring(get_parent(), global_position + Vector2(0, -6), 50.0, Color(1, 0.95, 0.7, 0.7), 0.35, 4.0)
 		voyage.remove_hole(self)
 		queue_free()
 	queue_redraw()

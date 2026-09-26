@@ -12,17 +12,21 @@ var hp := 3
 var _flip := false
 var _spin := 0.0
 var _flash := 0.0
+var _crystal_glow: Sprite2D
 
 
 func _ready() -> void:
 	add_to_group("rocks")
 	_flip = randf() < 0.5
 	_spin = randf_range(-0.4, 0.4)
+	_crystal_glow = Fx.glow(self, Vector2.ZERO, radius * 0.9, Color(0.55, 0.95, 1.0, 0.45))
 
 
 func _physics_process(delta: float) -> void:
 	position.x -= speed * voyage.speed_factor() * delta
 	_spin += delta * 0.15
+	_crystal_glow.position = Vector2(radius * 0.24, -radius * 0.68).rotated(_spin)
+	_crystal_glow.modulate.a = 0.35 + 0.12 * sin(_spin * 20.0)
 	_flash -= delta
 	if voyage.is_sailing() and _hits_hull():
 		voyage.rock_hit(self)

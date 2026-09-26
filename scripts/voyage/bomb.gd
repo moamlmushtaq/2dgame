@@ -12,6 +12,8 @@ var _k := 0.0
 
 
 func _ready() -> void:
+	var fuse := Fx.glow(self, Vector2(8, -15), 16.0, Color(1.0, 0.7, 0.3, 0.8))
+	fuse.create_tween().set_loops().tween_property(fuse, "modulate:a", 0.35, 0.08).from(0.9)
 	add_to_group("bombs")
 	z_index = 9
 	position = start
@@ -28,7 +30,7 @@ func _physics_process(delta: float) -> void:
 
 func shoot_down() -> void:
 	Sound.play("bird", -3.0, 0.7)
-	Fx.burst(get_parent(), global_position, Color("#ffb347"), 16, 180.0, 0.5)
+	Fx.explosion(get_parent(), global_position, Color("#ffb347"), 0.7)
 	queue_free()
 
 

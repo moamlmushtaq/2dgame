@@ -43,7 +43,10 @@ func _physics_process(delta: float) -> void:
 
 func kill() -> void:
 	Sound.play("bird", -2.0)
-	Fx.burst(get_parent(), global_position, Color("#8e7fc4"), 18, 200.0, 0.5, 300.0)
+	var feather := Color("#e8584f") if _frames == FRAMES["red"] else Color("#b9bcc8")
+	Fx.burst(get_parent(), global_position, feather, 16, 220.0, 0.45, 260.0, 1.0)
+	Fx.smoke(get_parent(), global_position, Color(1, 1, 1, 0.7), 6, 0.7, 0.6, 0.0)
+	Fx.flash(get_parent(), global_position, 55.0, Color(1, 0.95, 0.85, 0.6), 0.2)
 	queue_free()
 
 
