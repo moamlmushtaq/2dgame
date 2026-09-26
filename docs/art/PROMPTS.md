@@ -9,8 +9,7 @@
 ---
 
 ## 🔁 طريقة العمل (مهمة جدًا)
-1. **ابدأ بالبرومت 00** (المشهد المرجعي). ولّد 3 أو 4 نسخ، واختر أجملها، واحفظها في
-   `docs/art/style_key.png`. **أرفق هذه الصورة مع كل برومت بعدها**، فهي التي تجعل كل الرسومات بأسلوب واحد.
+1. **المرجع:** اخترنا النسخة الأولى من المشهد المرجعي، وهي محفوظة في `docs/art/style_key.jpg`. **أرفقها مع كل برومت**، فهي التي تجعل كل الرسومات بأسلوب واحد. مع برومت البحّار أرفق أيضًا `docs/art/style_key_characters.jpg`، لأن أجسام الشخصيات فيها أوضح.
 2. **الخلفية:** Nano Banana لا يعطي صورًا شفافة، لذلك كل برومت يطلب **خلفية خضراء صافية** (أو **بنفسجية** للنباتات الخضراء). أنا أزيلها بعد ذلك.
 3. **القوالب:** بعض البرومتات تحتاج إرفاق قالب من `docs/art/templates/`، حتى تطابق الرسمة أماكن الطوابق في اللعبة.
 4. **احفظ النتائج** في مجلد `art_inbox/` داخل المشروع بالأسماء المكتوبة هنا، ثم قل لي «وضعت الصور». أنا أزيل الخلفية، وأقص الصور وأصغّرها، وأضع الأجزاء في هيكل حركة، وأدخلها في اللعبة.
@@ -41,14 +40,14 @@ FORMAT: game sprite. Strict side view (orthographic, no perspective), facing RIG
 Key art for a cooperative sky-sailing game. A graceful wooden airship with a large patterned fabric balloon (deep crimson and cream panels with gold trim) glides between floating islands at golden hour. Four small hooded sky-sailors in flowing cloaks (teal, crimson, amber, violet) with softly glowing eyes work on deck: one at the ship's wheel, one at a brass cannon, one carrying glowing coal to a furnace. Brass lanterns glow on the ship. Around them: towering sunlit clouds, a sea of clouds far below, distant floating islands with waterfalls and pink blossom trees, crystals glowing under the islands, god rays, drifting motes of light. Side-on camera like a 2D platformer, the ship in the middle third. Cinematic, magical, premium indie game.
 ```
 
-### 01 — السفينة ← `ship.png` (16:9) — **أرفق** `templates/ship_layout.png` و `style_key.png`
+### 01 — السفينة ← `ship.png` (16:9) — **أرفق** `templates/ship_layout.png` و `style_key.jpg`
 ```
 [STYLE]
 [FORMAT]
-Paint the player's airship EXACTLY on the attached layout sketch: same size, same position and proportions for the balloon, tail fin, mast, crow's nest platform, quarterdeck platform, main deck line, railing, crate and hull. The blue bars are wooden surfaces the crew walks on: their top edges must stay perfectly flat and at the same height as in the sketch. Ship design: warm honey-coloured wooden hull with visible planks, brass trim and rivets, round brass portholes with glowing glass, carved arabesque panels along the hull, a wooden railing, rope rigging to a large fabric balloon with crimson and cream panels, gold seams and a gold-trimmed tail fin, small hanging pierced-brass lanterns under the quarterdeck and the crow's nest. IMPORTANT: leave the areas inside the orange boxes EMPTY deck (no furnace, no ship's wheel, no cannons, no coal, no propeller, no people) — those are separate sprites. Do not paint any labels, lines or boxes from the sketch.
+Paint the player's airship EXACTLY on the attached layout sketch (the first attached image): same size, same position and proportions for the round balloon, brass collar, mast, crow's nest platform, quarterdeck, stern castle, main deck line, railing, crate, hull and bowsprit. The ship faces RIGHT. The blue bars are wooden surfaces the crew walks on: their top edges must stay perfectly flat and at the same height as in the sketch. Ship design, matching the airship in the second attached image: warm honey-brown wooden hull with visible planks, ornate gold arabesque carvings and brass trim, a raised stern castle under the quarterdeck with glowing arched lattice windows, a wooden railing with turned balusters, a long bowsprit, pierced-brass lanterns hanging from the hull and under the crow's nest, rope rigging up to a large round hot-air balloon with crimson and cream panels covered in gold Arabian arabesque patterns, gold seams and a brass collar where it meets the mast. IMPORTANT: leave the areas inside the orange boxes EMPTY deck (no furnace, no ship's wheel, no cannons, no coal, no propeller, no people) — those are separate sprites. Do not paint any labels, lines or boxes from the sketch.
 ```
 
-### 02 — البحّار (أجزاء مفصولة للحركة) ← `sailor_parts.png` (16:9) — **أرفق** `templates/sailor_parts_layout.png` و `style_key.png`
+### 02 — البحّار (أجزاء مفصولة للحركة) ← `sailor_parts.png` (16:9) — **أرفق** `templates/sailor_parts_layout.png` و `style_key.jpg` و `style_key_characters.jpg`
 ```
 [STYLE]
 [FORMAT]
@@ -73,11 +72,11 @@ Three different floating sky boulders in one row with big gaps between them: rou
 
 ## الدفعة 2: بقية الرحلة
 
-### 05 — سفينة القراصنة ← `pirate_ship.png` (16:9) — **أرفق** `ship_layout.png` و `style_key.png`
+### 05 — سفينة القراصنة ← `pirate_ship.png` (16:9) — **أرفق** `ship_layout.png` و `style_key.jpg`
 ```
 [STYLE]
 [FORMAT]
-Paint the sky pirates' flagship on the attached layout sketch (same proportions, but facing LEFT — mirror the layout horizontally). Dark stained purple-black wood, tarnished bronze trim with sharp spikes, a torn dark violet balloon with patched panels and a yellow lightning emblem, tattered pennants, glowing sickly-yellow lanterns and portholes, menacing carved figurehead. Leave the deck empty (no crew). No labels or boxes.
+Paint the sky pirates' flagship on the attached layout sketch (same proportions, but facing LEFT — mirror the layout horizontally). Dark stained purple-black wood, tarnished bronze trim with sharp spikes, a torn round dark violet balloon with patched panels and a yellow lightning emblem, tattered pennants, glowing sickly-yellow lanterns and portholes, menacing carved figurehead. Leave the deck empty (no crew). No labels or boxes.
 ```
 
 ### 06 — المروحة ← `propeller.png` (1:1)
@@ -167,7 +166,7 @@ A sheet of separate puzzle props with big gaps, all at the same scale: (1) a flo
 ---
 
 ## ملاحظات لي (Claude) عند إدخال الصور
-- قالب السفينة: `img = game * 1.25 + (-25, 25)` على لوحة 1600×900. أقيس خط السطح (y=520 في اللعبة) في الصورة الناتجة لأضبط المقياس والإزاحة بدقة.
+- قالب السفينة: `img = game + (175, 200)` على لوحة 1600×900 (قمة البالون عند y=-180 في اللعبة، أعلى الشاشة). البالون الجديد دائري، أي أن `Ship.paint()` والإطار القديم يتغيران. أقيس خط السطح (y=520 في اللعبة) في الصورة الناتجة لأضبط المقياس والإزاحة بدقة.
 - البحّار: أجزاء العباءة رمادية، وأصبغها بلون اللاعب في الكود (modulate) على طبقة العباءة فقط.
 - الطائر: الجناح يدور حول الكتف في الكود لصنع الرفرفة.
 - أزيل الخلفية الخضراء أو البنفسجية بـ chroma key مع تنعيم الحواف، ثم أقص الصور وأصغّرها وأسجّلها في `assets/art/CREDITS.md`.
